@@ -758,6 +758,37 @@ header{position:sticky;top:0;z-index:100;background:rgba(5,5,8,.96);border-botto
         <button class="btn-danger" id="resetBetsBtn" style="width:100%;font-size:11px">🗑️ RÉINITIALISER LES PARIS DES BLOCS ENCORE OUVERTS</button>
       </div>
 
+      <!-- Blocs Sprint — affichés uniquement si sprint au programme, placés en premier car vendredi/samedi matin -->
+      <div id="sprintBlocs" style="display:none">
+        <div class="bloc-title" id="sprintQualiBlocTitle">Sprint Qualifications</div>
+        <div class="card">
+          <div class="card-hdr"><span class="card-title">🟠 Prédis la sprint quali</span><span class="badge purple">+5 pts chacun</span><button id="reset-bloc-spQuali" class="bloc-reset-btn" onclick="resetBetsBloc('spQuali')" style="display:none">🗑️ Réinitialiser</button></div>
+          <div class="card-body">
+            <div class="qs-grid">
+              <div class="qs-slot"><label class="lbl-pole">🟣 POLE · +5</label><select id="pred-spole"><option value="">— Pilote</option></select></div>
+              <div class="qs-slot"><label class="lbl-last">🔴 FLAMME ROUGE · +5</label><select id="pred-slast"><option value="">— Pilote</option></select></div>
+            </div>
+            <div class="bonus-bar" style="margin-top:10px;background:rgba(180,100,255,.05);border-color:rgba(180,100,255,.2)">
+              <span>ℹ️</span><span style="font-size:11px"><strong>Pole</strong> : meilleur temps en SQ3 · <strong>Flamme rouge</strong> : dernier éliminé en SQ1 (20ème)</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="bloc-title" id="sprintRaceBlocTitle">Sprint Race</div>
+        <div class="card">
+          <div class="card-hdr"><span class="card-title">🏎️ Prédis le podium sprint</span><span class="badge gold">+5 pts chacun</span><button id="reset-bloc-sprint" class="bloc-reset-btn" onclick="resetBetsBloc('sprint')" style="display:none">🗑️ Réinitialiser</button></div>
+          <div class="card-body">
+            <div class="podium-grid">
+              <div class="pod-slot p1"><label>1ER · +5</label><select id="pred-sp1" onchange="checkBonus()"><option value="">—</option></select></div>
+              <div class="pod-slot p2"><label>2ÈME · +5</label><select id="pred-sp2" onchange="checkBonus()"><option value="">—</option></select></div>
+              <div class="pod-slot p3"><label>3ÈME · +5</label><select id="pred-sp3" onchange="checkBonus()"><option value="">—</option></select></div>
+            </div>
+            <div class="bonus-bar" style="margin-top:8px"><span>ℹ️</span><span style="font-size:11px"><strong>+5 pts</strong> si rang exact · <strong>+4 pts</strong> si le pilote finit sur le podium mais pas à la bonne place</span></div>
+            <div class="bonus-bar" style="margin-top:6px"><span>⚡</span><span style="font-size:11px">Tiercé parfait sprint → Bonus <strong style="color:var(--gold)">+13 pts</strong></span></div>
+          </div>
+        </div>
+      </div>
+
       <div class="bloc-title" id="qualiBlocTitle">Qualifications</div>
       <div class="card">
         <div class="card-hdr"><span class="card-title">🏁 Prédis les qualifs</span><span class="badge purple">+10 pts chacun</span><button id="reset-bloc-quali" class="bloc-reset-btn" onclick="resetBetsBloc('quali')" style="display:none">🗑️ Réinitialiser</button></div>
@@ -812,37 +843,6 @@ header{position:sticky;top:0;z-index:100;background:rgba(5,5,8,.96);border-botto
           <div class="perf-item"><div class="perf-icon" style="background:rgba(0,212,255,.1)">📈</div><div class="perf-info"><div class="perf-name">Remontée du Jour</div><div class="perf-desc">+10 pts · pilote qui gagne le plus de positions vs grille</div></div><select class="perf-sel" id="pred-br"><option value="">— Pilote</option></select></div>
           <div class="perf-item"><div class="perf-icon" style="background:rgba(0,255,135,.1)">🔧</div><div class="perf-info"><div class="perf-name">Arrêt Éclair</div><div class="perf-desc">+10 pts · pilote avec le pit stop le plus rapide</div></div><select class="perf-sel" id="pred-fp"><option value="">— Pilote</option></select></div>
           <div class="perf-item"><div class="perf-icon" style="background:rgba(232,0,45,.1)">🎯</div><div class="perf-info"><div class="perf-name">Top 10</div><div class="perf-desc">+5 pts · pilote qui termine dans les points</div></div><select class="perf-sel" id="pred-t10"><option value="">— Pilote</option></select></div>
-        </div>
-      </div>
-
-      <!-- Blocs Sprint — affichés uniquement si sprint au programme -->
-      <div id="sprintBlocs" style="display:none">
-        <div class="bloc-title" id="sprintQualiBlocTitle">Sprint Qualifications</div>
-        <div class="card">
-          <div class="card-hdr"><span class="card-title">🟠 Prédis la sprint quali</span><span class="badge purple">+5 pts chacun</span><button id="reset-bloc-spQuali" class="bloc-reset-btn" onclick="resetBetsBloc('spQuali')" style="display:none">🗑️ Réinitialiser</button></div>
-          <div class="card-body">
-            <div class="qs-grid">
-              <div class="qs-slot"><label class="lbl-pole">🟣 POLE · +5</label><select id="pred-spole"><option value="">— Pilote</option></select></div>
-              <div class="qs-slot"><label class="lbl-last">🔴 FLAMME ROUGE · +5</label><select id="pred-slast"><option value="">— Pilote</option></select></div>
-            </div>
-            <div class="bonus-bar" style="margin-top:10px;background:rgba(180,100,255,.05);border-color:rgba(180,100,255,.2)">
-              <span>ℹ️</span><span style="font-size:11px"><strong>Pole</strong> : meilleur temps en SQ3 · <strong>Flamme rouge</strong> : dernier éliminé en SQ1 (20ème)</span>
-            </div>
-          </div>
-        </div>
-
-        <div class="bloc-title" id="sprintRaceBlocTitle">Sprint Race</div>
-        <div class="card">
-          <div class="card-hdr"><span class="card-title">🏎️ Prédis le podium sprint</span><span class="badge gold">+5 pts chacun</span><button id="reset-bloc-sprint" class="bloc-reset-btn" onclick="resetBetsBloc('sprint')" style="display:none">🗑️ Réinitialiser</button></div>
-          <div class="card-body">
-            <div class="podium-grid">
-              <div class="pod-slot p1"><label>1ER · +5</label><select id="pred-sp1" onchange="checkBonus()"><option value="">—</option></select></div>
-              <div class="pod-slot p2"><label>2ÈME · +5</label><select id="pred-sp2" onchange="checkBonus()"><option value="">—</option></select></div>
-              <div class="pod-slot p3"><label>3ÈME · +5</label><select id="pred-sp3" onchange="checkBonus()"><option value="">—</option></select></div>
-            </div>
-            <div class="bonus-bar" style="margin-top:8px"><span>ℹ️</span><span style="font-size:11px"><strong>+5 pts</strong> si rang exact · <strong>+4 pts</strong> si le pilote finit sur le podium mais pas à la bonne place</span></div>
-            <div class="bonus-bar" style="margin-top:6px"><span>⚡</span><span style="font-size:11px">Tiercé parfait sprint → Bonus <strong style="color:var(--gold)">+13 pts</strong></span></div>
-          </div>
         </div>
       </div>
 
@@ -1165,7 +1165,10 @@ header{position:sticky;top:0;z-index:100;background:rgba(5,5,8,.96);border-botto
           <!-- Logs -->
           <div style="display:flex;justify-content:space-between;align-items:center;margin-top:12px;margin-bottom:4px;border-top:1px solid rgba(255,215,0,.1);padding-top:10px">
             <span style="font-family:Orbitron,monospace;font-size:9px;letter-spacing:2px;color:var(--muted)">⚙ LOGS SYSTÈME</span>
-            <button onclick="document.getElementById('dbg').innerHTML=''" style="font-size:9px;background:none;border:1px solid rgba(255,215,0,.2);color:var(--muted);border-radius:3px;padding:2px 6px;cursor:pointer">EFFACER</button>
+            <div style="display:flex;gap:6px">
+              <button onclick="adminDiagnostic()" style="font-size:9px;background:rgba(0,212,255,.1);border:1px solid rgba(0,212,255,.3);color:var(--cyan);border-radius:3px;padding:2px 6px;cursor:pointer">🔍 DIAGNOSTIC</button>
+              <button onclick="document.getElementById('dbg').innerHTML=''" style="font-size:9px;background:none;border:1px solid rgba(255,215,0,.2);color:var(--muted);border-radius:3px;padding:2px 6px;cursor:pointer">EFFACER</button>
+            </div>
           </div>
           <div id="dbg"></div>
         </div>
@@ -1476,8 +1479,8 @@ const CALENDAR = [
    fp1:"Ven 6 · 01h30",  fp2:"Ven 6 · 05h00",  fp3:"Sam 7 · 01h30",
    quali:"Sam 7 · 05h00", spQ:null,sprint:null,  race:"Dim 8 · 05h00",  raceDate:new Date('2026-03-08T05:00:00+01:00')},
   {round:2, flag:"🇨🇳",country:"Chine",           circuit:"Shanghai",               dateLabel:"15 Mar", f1Slug:"china",
-   fp1:"Ven 13 · 05h30", fp2:null,              fp3:null,
-   quali:"Ven 13 · 09h00",spQ:"Sam 14 · 05h00",sprint:"Sam 14 · 09h00",race:"Dim 15 · 09h00",raceDate:new Date('2026-03-15T09:00:00+01:00')},
+   fp1:"Ven 13 · 04h30", fp2:null,              fp3:null,
+   quali:"Sam 14 · 08h00",spQ:"Ven 13 · 08h30",sprint:"Sam 14 · 04h00",race:"Dim 15 · 08h00",raceDate:new Date('2026-03-15T08:00:00+01:00')},
   {round:3, flag:"🇯🇵",country:"Japon",            circuit:"Suzuka",                 dateLabel:"29 Mar", f1Slug:"japan",
    fp1:"Ven 27 · 03h30", fp2:"Ven 27 · 07h00", fp3:"Sam 28 · 03h30",
    quali:"Sam 28 · 07h00",spQ:null,sprint:null, race:"Dim 29 · 07h00", raceDate:new Date('2026-03-29T07:00:00+02:00')},
@@ -1489,10 +1492,10 @@ const CALENDAR = [
    quali:"Sam 18 · 18h00",spQ:null,sprint:null, race:"Dim 19 · 19h00", raceDate:new Date('2026-04-19T19:00:00+02:00')},
   {round:6, flag:"🇺🇸",country:"Miami",            circuit:"Miami International",     dateLabel:"3 Mai",  f1Slug:"miami",
    fp1:"Ven 1 · 18h30",  fp2:null,              fp3:null,
-   quali:"Ven 1 · 22h00",  spQ:"Sam 2 · 18h00",sprint:"Sam 2 · 22h00",race:"Dim 3 · 21h00",  raceDate:new Date('2026-05-03T21:00:00+02:00')},
+   quali:"Sam 2 · 22h00",  spQ:"Ven 1 · 18h00", sprint:"Sam 2 · 18h00",race:"Dim 3 · 21h00",  raceDate:new Date('2026-05-03T21:00:00+02:00')},
   {round:7, flag:"🇨🇦",country:"Canada",            circuit:"Gilles-Villeneuve",       dateLabel:"24 Mai", f1Slug:"canada",
    fp1:"Ven 22 · 18h30", fp2:null,              fp3:null,
-   quali:"Ven 22 · 22h00", spQ:"Sam 23 · 18h00",sprint:"Sam 23 · 22h00",race:"Dim 24 · 20h00",raceDate:new Date('2026-05-24T20:00:00+02:00')},
+   quali:"Sam 23 · 22h00", spQ:"Ven 22 · 18h00",sprint:"Sam 23 · 18h00",race:"Dim 24 · 20h00",raceDate:new Date('2026-05-24T20:00:00+02:00')},
   {round:8, flag:"🇲🇨",country:"Monaco",            circuit:"Circuit de Monaco",       dateLabel:"7 Juin", f1Slug:"monaco",
    fp1:"Jeu 4 · 13h30",  fp2:"Jeu 4 · 17h00",  fp3:"Sam 6 · 12h30",
    quali:"Sam 6 · 16h00",  spQ:null,sprint:null, race:"Dim 7 · 15h00",  raceDate:new Date('2026-06-07T15:00:00+02:00')},
@@ -1504,7 +1507,7 @@ const CALENDAR = [
    quali:"Sam 27 · 16h00", spQ:null,sprint:null, race:"Dim 28 · 15h00", raceDate:new Date('2026-06-28T15:00:00+02:00')},
   {round:11,flag:"🇬🇧",country:"Grande-Bretagne",    circuit:"Silverstone",             dateLabel:"5 Juil", f1Slug:"great-britain",
    fp1:"Ven 3 · 13h30",  fp2:null,              fp3:null,
-   quali:"Ven 3 · 17h00",  spQ:"Sam 4 · 12h00",sprint:"Sam 4 · 16h00",race:"Dim 5 · 16h00",  raceDate:new Date('2026-07-05T16:00:00+02:00')},
+   quali:"Sam 4 · 16h00",  spQ:"Ven 3 · 13h00", sprint:"Sam 4 · 12h00",race:"Dim 5 · 16h00",  raceDate:new Date('2026-07-05T16:00:00+02:00')},
   {round:12,flag:"🇧🇪",country:"Belgique",            circuit:"Spa-Francorchamps",       dateLabel:"19 Juil",f1Slug:"belgium",
    fp1:"Ven 17 · 13h30", fp2:"Ven 17 · 17h00", fp3:"Sam 18 · 12h30",
    quali:"Sam 18 · 16h00", spQ:null,sprint:null, race:"Dim 19 · 15h00", raceDate:new Date('2026-07-19T15:00:00+02:00')},
@@ -1513,7 +1516,7 @@ const CALENDAR = [
    quali:"Sam 25 · 16h00", spQ:null,sprint:null, race:"Dim 26 · 15h00", raceDate:new Date('2026-07-26T15:00:00+02:00')},
   {round:14,flag:"🇳🇱",country:"Pays-Bas",             circuit:"Zandvoort",               dateLabel:"23 Aoû",f1Slug:"netherlands",
    fp1:"Ven 21 · 13h30", fp2:null,              fp3:null,
-   quali:"Ven 21 · 17h00", spQ:"Sam 22 · 12h00",sprint:"Sam 22 · 16h00",race:"Dim 23 · 15h00",raceDate:new Date('2026-08-23T15:00:00+02:00')},
+   quali:"Sam 22 · 16h00", spQ:"Ven 21 · 13h00",sprint:"Sam 22 · 12h00",race:"Dim 23 · 15h00",raceDate:new Date('2026-08-23T15:00:00+02:00')},
   {round:15,flag:"🇮🇹",country:"Italie",                circuit:"Monza",                   dateLabel:"6 Sep",  f1Slug:"italy",
    fp1:"Ven 4 · 13h30",  fp2:"Ven 4 · 17h00",  fp3:"Sam 5 · 12h30",
    quali:"Sam 5 · 16h00",  spQ:null,sprint:null, race:"Dim 6 · 15h00",  raceDate:new Date('2026-09-06T15:00:00+02:00')},
@@ -1525,7 +1528,7 @@ const CALENDAR = [
    quali:"Sam 26 · 14h00", spQ:null,sprint:null, race:"Dim 27 · 13h00", raceDate:new Date('2026-09-27T13:00:00+02:00')},
   {round:18,flag:"🇸🇬",country:"Singapour",               circuit:"Marina Bay",              dateLabel:"11 Oct", f1Slug:"singapore",
    fp1:"Ven 9 · 10h30",  fp2:null,              fp3:null,
-   quali:"Ven 9 · 14h00",  spQ:"Sam 10 · 11h00",sprint:"Sam 10 · 15h00",race:"Dim 11 · 14h00",raceDate:new Date('2026-10-11T14:00:00+02:00')},
+   quali:"Sam 10 · 15h00", spQ:"Ven 9 · 10h00",  sprint:"Sam 10 · 11h00",race:"Dim 11 · 14h00",raceDate:new Date('2026-10-11T14:00:00+02:00')},
   {round:19,flag:"🇺🇸",country:"États-Unis",              circuit:"COTA",                    dateLabel:"25 Oct", f1Slug:"united-states",
    fp1:"Ven 23 · 19h30", fp2:"Ven 23 · 23h00", fp3:"Sam 24 · 18h30",
    quali:"Sam 24 · 22h00", spQ:null,sprint:null, race:"Dim 25 · 21h00", raceDate:new Date('2026-10-25T21:00:00+01:00')},
@@ -1540,7 +1543,7 @@ const CALENDAR = [
    quali:"Sam 21 · 06h00", spQ:null,sprint:null, race:"Dim 22 · 07h00", raceDate:new Date('2026-11-22T07:00:00+01:00')},
   {round:23,flag:"🇶🇦",country:"Qatar",                    circuit:"Lusail",                  dateLabel:"29 Nov", f1Slug:"qatar",
    fp1:"Ven 27 · 13h30", fp2:null,              fp3:null,
-   quali:"Ven 27 · 17h00", spQ:"Sam 28 · 13h00",sprint:"Sam 28 · 17h00",race:"Dim 29 · 17h00",raceDate:new Date('2026-11-29T17:00:00+01:00')},
+   quali:"Sam 28 · 17h00", spQ:"Ven 27 · 13h00",sprint:"Sam 28 · 13h00",race:"Dim 29 · 17h00",raceDate:new Date('2026-11-29T17:00:00+01:00')},
   {round:24,flag:"🇦🇪",country:"Abu Dhabi",                circuit:"Yas Marina",              dateLabel:"6 Déc",  f1Slug:"abu-dhabi",
    fp1:"Ven 4 · 10h30",  fp2:"Ven 4 · 14h00",  fp3:"Sam 5 · 10h30",
    quali:"Sam 5 · 14h00",  spQ:null,sprint:null, race:"Dim 6 · 14h00",  raceDate:new Date('2026-12-06T14:00:00+01:00')},
@@ -3087,15 +3090,17 @@ function renderCalendar(){
     const stTxt=past?'✅ Terminé':isNext?'🔜 Prochain':'⏳ À venir';
     const stCol=past?'var(--muted)':isNext?'var(--red)':'var(--cyan)';
     const hasSp=!!r.sprint;
-    const sessions=[
-      r.fp1?`<div class="cs-row"><span class="cs-name" style="color:rgba(255,255,255,.35)">⚙️ EL1</span><span class="cs-time" style="color:rgba(255,255,255,.35)">${r.fp1}</span></div>`:'',
-      r.fp2?`<div class="cs-row"><span class="cs-name" style="color:rgba(255,255,255,.35)">⚙️ EL2</span><span class="cs-time" style="color:rgba(255,255,255,.35)">${r.fp2}</span></div>`:'',
-      r.fp3?`<div class="cs-row"><span class="cs-name" style="color:rgba(255,255,255,.35)">⚙️ EL3</span><span class="cs-time" style="color:rgba(255,255,255,.35)">${r.fp3}</span></div>`:'',
-      `<div class="cs-row"><span class="cs-name" style="color:#c084fc">🟣 Qualifications</span><span class="cs-time" style="color:#c084fc">${r.quali}</span></div>`,
-      r.spQ?`<div class="cs-row"><span class="cs-name" style="color:#fb923c">🟠 Sprint Quali</span><span class="cs-time" style="color:#fb923c">${r.spQ}</span></div>`:'',
-      r.sprint?`<div class="cs-row"><span class="cs-name" style="color:#fb923c">🟠 Sprint Race</span><span class="cs-time" style="color:#fb923c">${r.sprint}</span></div>`:'',
-      `<div class="cs-row"><span class="cs-name" style="color:var(--red)">🔴 Course</span><span class="cs-time" style="color:var(--red)">${r.race}</span></div>`,
-    ].join('');
+    // Construire les sessions avec leur date pour trier chronologiquement
+    const allSess = [
+      r.fp1   ? { d: parseEventDate(r.fp1,   r.raceDate), html: `<div class="cs-row"><span class="cs-name" style="color:rgba(255,255,255,.35)">⚙️ EL1</span><span class="cs-time" style="color:rgba(255,255,255,.35)">${r.fp1}</span></div>` } : null,
+      r.fp2   ? { d: parseEventDate(r.fp2,   r.raceDate), html: `<div class="cs-row"><span class="cs-name" style="color:rgba(255,255,255,.35)">⚙️ EL2</span><span class="cs-time" style="color:rgba(255,255,255,.35)">${r.fp2}</span></div>` } : null,
+      r.fp3   ? { d: parseEventDate(r.fp3,   r.raceDate), html: `<div class="cs-row"><span class="cs-name" style="color:rgba(255,255,255,.35)">⚙️ EL3</span><span class="cs-time" style="color:rgba(255,255,255,.35)">${r.fp3}</span></div>` } : null,
+      r.spQ   ? { d: parseEventDate(r.spQ,   r.raceDate), html: `<div class="cs-row"><span class="cs-name" style="color:#fb923c">🟠 Sprint Quali</span><span class="cs-time" style="color:#fb923c">${r.spQ}</span></div>` } : null,
+      r.sprint? { d: parseEventDate(r.sprint, r.raceDate), html: `<div class="cs-row"><span class="cs-name" style="color:#fb923c">🟠 Sprint Race</span><span class="cs-time" style="color:#fb923c">${r.sprint}</span></div>` } : null,
+              { d: parseEventDate(r.quali,  r.raceDate), html: `<div class="cs-row"><span class="cs-name" style="color:#c084fc">🟣 Qualifications</span><span class="cs-time" style="color:#c084fc">${r.quali}</span></div>` },
+              { d: r.raceDate,                            html: `<div class="cs-row"><span class="cs-name" style="color:var(--red)">🔴 Course</span><span class="cs-time" style="color:var(--red)">${r.race}</span></div>` },
+    ].filter(Boolean).sort((a,b) => (a.d||0) - (b.d||0));
+    const sessions = allSess.map(s => s.html).join('');
     return `<div class="cal-round ${isNext?'next':''} ${past?'done':''}" id="cal-${r.round}">
       <div class="cal-hdr" onclick="toggleCal(${r.round})">
         <div class="cal-num ${isNext?'nx':''}">${r.round}</div>
@@ -3576,48 +3581,52 @@ async function archiveQualiResult(rows, total, activeCal, prefix) {
   }
 }
 
+// ════ recomputePlayerTotals ════
+// Source de vérité unique pour pts + races.
+// Relit TOUS les docs results/r{n}_2026 et écrase pts + races.
+// Appelée après chaque archivage ET par adminFixTotals.
+async function recomputePlayerTotals(uid) {
+  const resSnap = await db.collection('players').doc(uid).collection('results').get();
+  let pts = 0, races = 0;
+  resSnap.forEach(d => {
+    if (/^r\d+_2026$/.test(d.id)) {
+      const t = d.data().total || 0;
+      pts += t;
+      if (t > 0) races++;
+    }
+  });
+  // Nettoyer aussi countedRaces (garder uniquement les clés r{n}_2026 valides)
+  const playerSnap = await db.collection('players').doc(uid).get();
+  const prev = playerSnap.exists ? playerSnap.data() : {};
+  const cleanedCounted = (prev.countedRaces || []).filter(k => /^r\d+_2026$/.test(k));
+  await db.collection('players').doc(uid).set({ pts, races, countedRaces: cleanedCounted, updatedAt: Date.now() }, { merge: true });
+  return { pts, races };
+}
+
 // ════ archiveRaceResult ════
-// Règles :
-//   1. Le doc results/{key} est TOUJOURS écrit (upsert)
-//   2. Les points ne sont ajoutés QU'UNE FOIS (guard countedRaces)
-//   3. _archiveDone évite les doubles appels dans la même session
+// Écrit UNIQUEMENT le doc results/r{n}_2026.
+// Ne touche JAMAIS à pts/races — délégué à recomputePlayerTotals.
 let _archiveDone = {};
 async function archiveRaceResult(rows, total, key, activeCal, bets) {
-  // bets = paris utilisés pour le calcul (peut différer de myBets global)
   const _bets = bets || myBets;
   if (!CU || !_bets || _bets.deleted) return;
   if (_archiveDone[key]) return;
   _archiveDone[key] = true;
   try {
-    const playerRef = doc(db, 'players', CU.id);
-    const snap = await getDoc(playerRef);
-    const prev = snapExists(snap) ? snap.data() : { pts: 0, races: 0 };
-    const counted = prev.countedRaces || [];
-
-    if (!counted.includes(key)) {
-      // Première fois : incrémenter les points
-      await setDoc(playerRef, {
-        pts:          (prev.pts   || 0) + total,
-        races:        (prev.races || 0) + 1,
-        countedRaces: [...counted, key],
-        updatedAt:    Date.now()
-      }, { merge: true });
-    }
-
-    // Toujours sauvegarder le détail résultats (corrige les archives bugées)
+    // Écrire le doc résultat
     await setDoc(doc(db, 'players', CU.id, 'results', key), {
-      total,
-      rows,
+      total, rows,
       gpKey:   key,
       gpRound: activeCal.round,
       gpName:  activeCal.country || '',
       gpFlag:  activeCal.flag   || '',
       savedAt: Date.now()
     });
-
-        updateScore();
+    // Recalculer pts + races depuis tous les docs (source de vérité)
+    await recomputePlayerTotals(CU.id);
+    updateScore();
   } catch(e) {
-    _archiveDone[key] = false; // permettre retry si erreur Firebase
+    _archiveDone[key] = false;
     console.error('archiveRaceResult', e);
   }
 }
@@ -4182,7 +4191,8 @@ const _autoComputing = new Set();
 async function _autoComputeGP(cal) {
   if (_autoComputing.has(cal.round)) return;
   const now = new Date();
-  if (now < new Date(cal.raceDate.getTime() + 7200000)) return; // pas encore dispo
+  // Attendre 4h après la course (pas juste 2h) pour être sûr que les données sont complètes
+  if (now < new Date(cal.raceDate.getTime() + 4 * 3600000)) return;
   _autoComputing.add(cal.round);
 
   try {
@@ -4202,10 +4212,16 @@ async function _autoComputeGP(cal) {
     // Pas archivé → calculer silencieusement
     const bets = await loadBetsForRound(CU.id, cal.round);
     if (!bets) return;
-    // Si sessionKey pas encore chargé, attendre un peu que loadRace() finisse
     if (!sessionKey) await new Promise(r => setTimeout(r, 3000));
     const data = await rr_fetchRaceData(cal.round);
     if (!data) return;
+    // Vérifier que les données de course sont complètes (au moins 15 pilotes classifiés)
+    const finishers = (data.pos || []).filter(p => p.position >= 1 && p.position <= 20);
+    if (finishers.length < 15) {
+      dbg(`_autoComputeGP R${cal.round}: données incomplètes (${finishers.length} pilotes) — skip`, 'wrn');
+      _autoComputing.delete(cal.round); // permettre retry
+      return;
+    }
     const { rows, total } = calcWeekend(bets, data);
     const key = `r${cal.round}_2026`;
     await archiveRaceResult(rows, total, key, cal, bets);
@@ -4849,6 +4865,36 @@ window.saveOverrideFP = async function(round) {
   _loadRRResult(round);
 };
 
+// ─── Diagnostic : affiche tous les docs results de chaque joueur ────────────
+window.adminDiagnostic = async () => {
+  const playersSnap = await db.collection('players').get();
+  dbg('═══ DIAGNOSTIC ═══', 'inf');
+  for (const pd of playersSnap.docs) {
+    const uid = pd.id, name = pd.data().name || uid.slice(0,8);
+    const pts = pd.data().pts || 0, races = pd.data().races || 0;
+    const counted = (pd.data().countedRaces || []).join(', ') || '—';
+    const resSnap = await db.collection('players').doc(uid).collection('results').get();
+    // Calculer le total réel depuis les docs r{n}_2026 uniquement
+    let realTotal = 0;
+    const resDocs = [];
+    resSnap.forEach(d => {
+      const valid = /^r\d+_2026$/.test(d.id);
+      const t = d.data().total || 0;
+      if (valid) realTotal += t;
+      resDocs.push({ id: d.id, total: t, valid });
+    });
+    const discrepancy = pts !== realTotal;
+    dbg(`<b style="color:${discrepancy?'var(--red)':'var(--cyan)'}">${name}</b> · pts=${pts} · réel=${realTotal}${discrepancy?' ⚠️ ÉCART='+(pts-realTotal):' ✓'} · races=${races}`, 'inf');
+    dbg(`  countedRaces: ${counted}`, 'inf');
+    resDocs.forEach(d => {
+      const col = d.valid ? 'var(--green)' : 'var(--red)';
+      dbg(`  <span style="color:${col}">${d.id}</span> → ${d.total} pts`, 'inf');
+    });
+    if (resDocs.length === 0) dbg(`  (aucun doc results)`, 'inf');
+  }
+  dbg('═══ FIN ═══', 'inf');
+};
+
 window.adminMigrateBets = async () => {
   if (gVal('adminPwd') !== ADMIN_PASSWORD) { notif('❌ Mot de passe incorrect'); return; }
   const logEl = gEl('adminFixLog');
@@ -4991,58 +5037,23 @@ window.adminFixTotals = async () => {
 
   try {
     const playersSnap = await db.collection('players').get();
-    let fixed = 0, unchanged = 0, cleaned = 0;
+    let fixed = 0, unchanged = 0;
 
     for (const pd of playersSnap.docs) {
       const uid = pd.id;
       const name = pd.data().name || uid.slice(0, 8);
-      const currentPts = pd.data().pts || 0;
-
-      // Additionner UNIQUEMENT les docs r{n}_2026 — tout le reste est ignoré
-      const resultsSnap = await db.collection('players').doc(uid).collection('results').get();
-      let correctPts = 0;
-      const validKeys = [];
-      const staleKeys = [];
-      resultsSnap.forEach(d => {
-        const k = d.id;
-        if (/^r\d+_2026$/.test(k)) {
-          const t = d.data().total || 0;
-          correctPts += t;
-          validKeys.push(k + ':' + t);
-        } else {
-          staleKeys.push(k); // vieilles clés (numériques, q_r*, spq_r*, etc.)
-        }
-      });
-
-      // Nettoyer les countedRaces : garder seulement les clés r{n}_2026
-      const countedRaces = pd.data().countedRaces || [];
-      const cleanedCounted = countedRaces.filter(k => /^r\d+_2026$/.test(k));
-      const countedChanged = cleanedCounted.length !== countedRaces.length;
-
-      if (staleKeys.length > 0) {
-        log(`🧹 ${name} · ${staleKeys.length} clé(s) obsolète(s) ignorée(s) : ${staleKeys.join(', ')}`);
-        cleaned += staleKeys.length;
-      }
-
-      const updates = {};
-      if (correctPts !== currentPts) updates.pts = correctPts;
-      if (countedChanged) updates.countedRaces = cleanedCounted;
-      // Corriger races = nombre de GP avec total > 0
-      const correctRaces = validKeys.filter(k => parseInt(k.split(':')[1]) > 0).length;
-      const currentRaces = pd.data().races || 0;
-      if (correctRaces !== currentRaces) updates.races = correctRaces;
-      updates.updatedAt = Date.now();
-
-      if (Object.keys(updates).length > 1) { // > 1 car updatedAt toujours présent
-        await db.collection('players').doc(uid).set(updates, { merge: true });
-        log('✅ ' + name + ' · ' + currentPts + ' → ' + correctPts + ' pts · ' + currentRaces + ' → ' + correctRaces + ' courses' + (validKeys.length ? ' [' + validKeys.join(', ') + ']' : ' [aucun résultat]'));
+      const oldPts = pd.data().pts || 0;
+      const oldRaces = pd.data().races || 0;
+      const { pts: newPts, races: newRaces } = await recomputePlayerTotals(uid);
+      if (newPts !== oldPts || newRaces !== oldRaces) {
+        log(`✅ ${name} · ${oldPts}→${newPts} pts · ${oldRaces}→${newRaces} courses`);
         fixed++;
       } else {
-        log('✓ ' + name + ' · ' + currentPts + ' pts OK');
+        log(`✓ ${name} · ${newPts} pts OK`);
         unchanged++;
       }
     }
-    log(`<br>🏁 Terminé : ${fixed} corrigés · ${unchanged} inchangés · ${cleaned} clés obsolètes ignorées`);
+    log(`<br>🏁 Terminé : ${fixed} corrigés · ${unchanged} inchangés`);
     notif('✅ Totaux recalculés : ' + fixed + ' joueurs corrigés');
     updateScore();
   } catch(e) {
@@ -5111,20 +5122,9 @@ window.adminForceRecalc = async () => {
           gpName: cal.country, gpFlag: cal.flag, savedAt: Date.now()
         }));
 
-        if (diff !== 0) {
-          const playerRef = db.collection('players').doc(uid);
-          const ps = await getDoc(playerRef);
-          const prev = snapExists(ps) ? ps.data() : { pts: 0 };
-          const counted = (prev.countedRaces || []).filter(k => k !== qualiKey && k !== spQualiKey);
-          await setDoc(playerRef, {
-            pts: (prev.pts || 0) + diff,
-            countedRaces: [...new Set([...counted, key])],
-            updatedAt: Date.now()
-          }, { merge: true });
-          log('✅ ' + name + ' · ' + oldTotal + ' → ' + newTotal + ' (' + (diff >= 0 ? '+' : '') + diff + ' pts)');
-        } else {
-          log('✓ ' + name + ' · score inchangé (' + newTotal + ' pts)');
-        }
+        // Recalculer pts + races depuis tous les docs (source de vérité unique)
+        const { pts: newPts } = await recomputePlayerTotals(uid);
+        log('✅ ' + name + ' · GP' + round + ' = ' + newTotal + ' pts · total = ' + newPts + ' pts');
         ok++;
       } catch(e) {
         log('❌ ' + name + ' : ' + e.message);
@@ -5245,25 +5245,17 @@ window.adminManualResult = async () => {
         }
         return v;
       };
-      // Archiver le résultat (sans toucher aux pts — utilise 🔢 RECALCULER TOTAUX ensuite)
+      // Archiver le résultat puis recalculer pts+races proprement
       await db.collection('players').doc(uid).collection('results').doc(gpKey).set(clean({
         total, rows, gpKey, gpRound: round, gpName: cal.country, gpFlag: cal.flag, savedAt: Date.now()
       }));
-      // S'assurer que races est à jour (incrémenter seulement si c'est un nouveau résultat)
-      const oldResSnap = await db.collection('players').doc(uid).collection('results').doc(gpKey).get();
-      const wasNew = !oldResSnap.exists;
-      if (wasNew && total > 0) {
-        const freshPlayer = await db.collection('players').doc(uid).get();
-        const curRaces = (freshPlayer.exists ? freshPlayer.data().races : 0) || 0;
-        await db.collection('players').doc(uid).update({ races: curRaces + 1 });
-      }
-      log(`✓ ${name} : ${total} pts archivés (utilise 🔢 pour mettre à jour le total)`);
+      await recomputePlayerTotals(uid);
+      log(`✓ ${name} : ${total} pts archivés`);
       ok++;
     } catch(e) { log(`❌ ${name} : ${e.message}`); errors++; }
   }
   log(`<br>🏁 Terminé : ${ok} archivés · ${skipped} sans paris · ${errors} erreurs`);
-  log(`<b style="color:var(--gold)">👉 Lance maintenant 🔢 RECALCULER TOTAUX pour mettre à jour les points</b>`);
-  notif(`✅ GP${round} archivé — lance 🔢 Recalculer Totaux`);
+  notif(`✅ GP${round} archivé`);
   updateScore();
 };
 
