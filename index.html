@@ -1078,6 +1078,22 @@ header{position:sticky;top:0;z-index:100;background:rgba(5,5,8,.96);border-botto
             </div>
           </div>
 
+          <!-- Section accordéon : supprimer un joueur -->
+          <div style="margin-top:6px">
+            <div onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display==='none'?'block':'none'" style="cursor:pointer;display:flex;justify-content:space-between;align-items:center;padding:8px 10px;background:rgba(232,0,45,.07);border:1px solid rgba(232,0,45,.2);border-radius:4px">
+              <span style="font-family:'Orbitron',monospace;font-size:9px;letter-spacing:2px;color:var(--red)">🗑️ SUPPRIMER UN JOUEUR</span>
+              <span style="color:var(--muted);font-size:10px">▾</span>
+            </div>
+            <div style="display:none;padding:10px;background:rgba(0,0,0,.2);border:1px solid rgba(232,0,45,.1);border-top:none;border-radius:0 0 4px 4px">
+              <select id="adminDelPlayer" style="width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:3px;color:var(--text);font-size:11px;padding:6px;margin-bottom:8px">
+                <option value="">-- Choisir un joueur --</option>
+              </select>
+              <div style="font-size:10px;color:var(--red);margin-bottom:8px">⚠️ Supprime le compte Auth, les données Firestore (players, bets, résultats). Irréversible.</div>
+              <button class="admin-btn" onclick="adminDeletePlayer()" style="background:rgba(232,0,45,.15);border-color:rgba(232,0,45,.4);color:var(--red);margin-top:0">🗑️ SUPPRIMER CE JOUEUR</button>
+              <div id="adminDelLog" style="font-size:10px;color:var(--muted);margin-top:4px;font-family:monospace"></div>
+            </div>
+          </div>
+
           <!-- Section accordéon : saisir paris d'un joueur -->
           <div style="margin-top:6px">
             <div onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display==='none'?'block':'none'" style="cursor:pointer;display:flex;justify-content:space-between;align-items:center;padding:8px 10px;background:rgba(150,90,255,.07);border:1px solid rgba(150,90,255,.2);border-radius:4px">
@@ -1140,7 +1156,10 @@ header{position:sticky;top:0;z-index:100;background:rgba(5,5,8,.96);border-botto
               </div>
               <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:6px">
                 <div><div style="font-size:9px;color:var(--muted);margin-bottom:3px">🏁 Pole</div><select id="adminManPole" class="admin-drv-sel"></select></div>
-                <div><div style="font-size:9px;color:var(--muted);margin-bottom:3px">🔴 Flamme Rouge</div><select id="adminManLast" class="admin-drv-sel"></select></div>
+                <div>
+                  <div style="font-size:9px;color:var(--muted);margin-bottom:3px">🔴 Flamme Rouge (plusieurs si ex-aequo)</div>
+                  <div id="adminManLastChecks" style="display:grid;grid-template-columns:1fr 1fr;gap:3px;max-height:120px;overflow-y:auto;background:var(--bg3);border:1px solid var(--border);border-radius:3px;padding:4px"></div>
+                </div>
               </div>
               <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-bottom:6px">
                 <div><div style="font-size:9px;color:var(--muted);margin-bottom:3px">📈 Remontée</div><select id="adminManBR" class="admin-drv-sel"></select></div>
@@ -1945,6 +1964,11 @@ function _startPostRaceWatchdog(activeCal) {
       return;
     }
     dbg('🔄 Watchdog tentative ' + attempts + '…', 'ok');
+    // Si sessionKey pas encore chargé, retenter loadRace
+    if (!sessionKey) {
+      dbg('🔄 Watchdog: sessionKey manquant, retry loadRace…', 'wrn');
+      await loadRace();
+    }
     // Réinitialiser le flag pour permettre une nouvelle tentative
     _autoArchiveTriggered[key] = false;
     await _triggerAutoArchive(activeCal);
@@ -3662,16 +3686,15 @@ async function rr_fetchJolpicaQuali(round) {
     if (!r.ok) return [];
     const data = await r.json();
     return (data?.MRData?.RaceTable?.Races?.[0]?.QualifyingResults || []).map(q => {
-      let num = parseInt(q.Driver.permanentNumber);
-      if (isNaN(num) || !num) {
-        const slug = (q.Driver.driverId || '').toLowerCase();
-        const family = (q.Driver.familyName || '').toLowerCase();
-        const match = F1_DRIVERS_2026.find(d =>
-          slug.includes(d.id) || d.id.includes(slug) ||
-          family.includes(d.id) || d.id.includes(family)
-        );
-        if (match) num = match.num;
-      }
+      const slug = (q.Driver.driverId || '').toLowerCase();
+      const family = (q.Driver.familyName || '').toLowerCase();
+      // Toujours chercher d'abord dans F1_DRIVERS_2026 par driverId/familyName
+      // pour obtenir le numéro 2026 correct (ex: Norris = #1 en 2026, pas #4)
+      const match2026 = F1_DRIVERS_2026.find(d =>
+        slug.includes(d.id) || d.id.includes(slug) ||
+        family.includes(d.id) || d.id.includes(family)
+      );
+      const num = match2026 ? match2026.num : parseInt(q.Driver.permanentNumber);
       return { driver_number: num, position: parseInt(q.position) };
     }).filter(q => q.driver_number && !isNaN(q.driver_number));
   } catch { return []; }
@@ -3787,19 +3810,16 @@ async function _fetchJolpicaRacePos(round) {
     const data = await r.json();
     const results = data?.MRData?.RaceTable?.Races?.[0]?.Results || [];
     return results.map(res => {
-      // permanentNumber peut être absent pour les rookies (Lindblad etc.)
-      // → fallback : chercher par familyName ou driverId dans F1_DRIVERS_2026
-      let num = parseInt(res.Driver.permanentNumber);
-      if (isNaN(num) || !num) {
-        const slug = (res.Driver.driverId || '').toLowerCase();
-        const family = (res.Driver.familyName || '').toLowerCase();
-        const match = F1_DRIVERS_2026.find(d =>
-          slug.includes(d.id) || d.id.includes(slug) ||
-          family.includes(d.id) || d.id.includes(family) ||
-          (d.abbr && d.abbr.toLowerCase() === slug.slice(0,3))
-        );
-        if (match) num = match.num;
-      }
+      // Toujours chercher d'abord par driverId/familyName pour le numéro 2026
+      // (ex: Norris = #1 en 2026 via champion, Jolpica retourne encore #4)
+      const slug = (res.Driver.driverId || '').toLowerCase();
+      const family = (res.Driver.familyName || '').toLowerCase();
+      const match2026 = F1_DRIVERS_2026.find(d =>
+        slug.includes(d.id) || d.id.includes(slug) ||
+        family.includes(d.id) || d.id.includes(family) ||
+        (d.abbr && d.abbr.toLowerCase() === slug.slice(0,3))
+      );
+      const num = match2026 ? match2026.num : parseInt(res.Driver.permanentNumber);
       return { driver_number: num, position: parseInt(res.position) };
     }).filter(r => r.driver_number && !isNaN(r.driver_number));
   } catch { return []; }
@@ -4196,12 +4216,12 @@ async function _autoComputeGP(cal) {
   _autoComputing.add(cal.round);
 
   try {
-    // Déjà archivé ?
-    const existing = await db.collection('players').doc(CU.id).collection('results')
-      .where('gpRound', '==', cal.round).limit(1).get();
-    if (!existing.empty) {
-      // Déjà archivé → juste mettre à jour l'affichage du header
-      const d = existing.docs[0].data();
+    // Déjà archivé ? — vérifier directement par clé r{n}_2026
+    const key = `r${cal.round}_2026`;
+    const existing = await db.collection('players').doc(CU.id).collection('results').doc(key).get();
+    if (existing.exists) {
+      // Déjà archivé (ou verrouillé manuellement) → juste mettre à jour l'affichage
+      const d = existing.data();
       const scoreEl = gEl('rr-s-' + cal.round);
       const sign = d.total >= 0 ? '+' : '';
       const col  = d.total > 0 ? 'var(--green)' : d.total < 0 ? 'var(--red)' : 'var(--muted)';
@@ -4223,7 +4243,6 @@ async function _autoComputeGP(cal) {
       return;
     }
     const { rows, total } = calcWeekend(bets, data);
-    const key = `r${cal.round}_2026`;
     await archiveRaceResult(rows, total, key, cal, bets);
     const scoreEl = gEl('rr-s-' + cal.round);
     const sign = total >= 0 ? '+' : '';
@@ -4824,6 +4843,15 @@ window.toggleAdmin = () => {
         });
       });
     }
+    // Select joueurs (suppression)
+    const selDel = gEl('adminDelPlayer');
+    if (selDel && selDel.options.length <= 1) {
+      db.collection('players').get().then(snap => {
+        snap.docs.forEach(d => {
+          const o = document.createElement('option'); o.value=d.id; o.textContent=d.data().name||d.id; selDel.appendChild(o);
+        });
+      });
+    }
     // Select joueurs (saisie paris)
     const selBP = gEl('adminBetPlayer');
     if (selBP && selBP.options.length <= 1) {
@@ -4842,12 +4870,22 @@ window.toggleAdmin = () => {
     }
     // Remplir tous les selects pilotes du formulaire manuel
     const drvOpts = '<option value="">—</option>' + F1_DRIVERS_2026.map(d=>`<option value="${d.num}">${d.abbr} · ${d.team}</option>`).join('');
-    ['adminManP1','adminManP2','adminManP3','adminManPole','adminManLast','adminManBR','adminManFP','adminManT10',
+    ['adminManP1','adminManP2','adminManP3','adminManPole','adminManBR','adminManFP','adminManT10',
      'adminManR4','adminManR5','adminManR6','adminManR7','adminManR8','adminManR9','adminManR10',
      'adminBetPole','adminBetLast','adminBetP1','adminBetP2','adminBetP3','adminBetBR','adminBetFP','adminBetT10',
      'adminBetR4','adminBetR5','adminBetR6','adminBetR7','adminBetR8','adminBetR9','adminBetR10'].forEach(id => {
       const el = gEl(id); if (el && el.options.length <= 1) el.innerHTML = drvOpts;
     });
+    // Peupler les checkboxes Flamme Rouge du formulaire manuel
+    const frBox = gEl('adminManLastChecks');
+    if (frBox && frBox.children.length === 0) {
+      frBox.innerHTML = F1_DRIVERS_2026.map(d =>
+        `<label style="display:flex;align-items:center;gap:4px;font-size:10px;color:var(--text);cursor:pointer;padding:2px 4px">
+          <input type="checkbox" value="${d.num}" style="accent-color:var(--red)">
+          <span style="color:${teamColor(d.team)}">${d.abbr}</span>
+        </label>`
+      ).join('');
+    }
   }
 };
 
@@ -4893,6 +4931,61 @@ window.adminDiagnostic = async () => {
     if (resDocs.length === 0) dbg(`  (aucun doc results)`, 'inf');
   }
   dbg('═══ FIN ═══', 'inf');
+};
+
+// ─── Suppression d'un joueur ────────────────────────────────────
+window.adminDeletePlayer = async () => {
+  if (gVal('adminPwd') !== ADMIN_PASSWORD) { notif('❌ Mot de passe incorrect'); return; }
+  const uid = gEl('adminDelPlayer').value;
+  if (!uid) { notif('❌ Choisis un joueur'); return; }
+  const logEl = gEl('adminDelLog');
+  const log = msg => { logEl.innerHTML += msg + '<br>'; };
+  logEl.innerHTML = '';
+
+  const playerSnap = await db.collection('players').doc(uid).get();
+  const name = playerSnap.exists ? playerSnap.data().name : uid;
+
+  if (!confirm(`Supprimer définitivement ${name} ? Cette action est irréversible.`)) return;
+
+  log(`🗑️ Suppression de ${name}…`);
+  try {
+    // 1. Supprimer les résultats (sous-collection)
+    const resSnap = await db.collection('players').doc(uid).collection('results').get();
+    for (const d of resSnap.docs) await d.ref.delete();
+    log(`✓ ${resSnap.size} résultats supprimés`);
+
+    // 2. Supprimer les adjustments (sous-collection)
+    try {
+      const adjSnap = await db.collection('players').doc(uid).collection('adjustments').get();
+      for (const d of adjSnap.docs) await d.ref.delete();
+    } catch(_) {}
+
+    // 3. Supprimer le doc player
+    await db.collection('players').doc(uid).delete();
+    log('✓ Doc players supprimé');
+
+    // 4. Supprimer les paris (sous-collection rounds)
+    const roundsSnap = await db.collection('bets').doc(uid).collection('rounds').get();
+    for (const d of roundsSnap.docs) await d.ref.delete();
+    log(`✓ ${roundsSnap.size} rounds de paris supprimés`);
+
+    // 5. Supprimer le doc bets racine
+    await db.collection('bets').doc(uid).delete();
+    log('✓ Doc bets supprimé');
+
+    log(`<b style="color:var(--green)">✅ ${name} supprimé de Firestore</b>`);
+    log(`<span style="color:var(--muted)">⚠️ Le compte Auth doit être supprimé manuellement dans Firebase Console → Authentication</span>`);
+    notif(`✅ ${name} supprimé`);
+
+    // Rafraîchir les selects
+    gEl('adminDelPlayer').innerHTML = '<option value="">-- Choisir un joueur --</option>';
+    gEl('adminAdjPlayer').innerHTML = '<option value="">-- Joueur --</option>';
+    gEl('adminBetPlayer').innerHTML = '<option value="">-- Joueur --</option>';
+    startLB();
+  } catch(e) {
+    log(`❌ Erreur : ${e.message}`);
+    notif('❌ Erreur suppression');
+  }
 };
 
 window.adminMigrateBets = async () => {
@@ -5101,6 +5194,13 @@ window.adminForceRecalc = async () => {
         const bets = await loadBetsForRound(uid, round);
         if (!bets) { log('⏭ ' + name + ' — pas de paris'); skipped++; continue; }
 
+        // Vérifier si le résultat est verrouillé manuellement
+        const existingSnap = await db.collection('players').doc(uid).collection('results').doc(key).get();
+        if (existingSnap.exists && existingSnap.data().locked) {
+          log(`🔒 ${name} — résultat verrouillé (saisi manuellement), skip`);
+          skipped++; continue;
+        }
+
         const { rows, total: newTotal } = calcWeekend(bets, data);
 
         let oldTotal = 0;
@@ -5193,12 +5293,15 @@ window.adminManualResult = async () => {
   });
   if (pos.length < 3) { notif('❌ Saisis au moins le podium (P1/P2/P3)'); return; }
 
+  const checkedLast = Array.from(document.querySelectorAll('#adminManLastChecks input:checked')).map(cb => parseInt(cb.value));
+
   const data = {
     round, pos, grid: [], pits: [],
     quali: [{ driver_number: parseInt(gv('adminManPole')), position: 1 }],
-    qualiPos: gv('adminManLast') ? [
+    qualiPos: gv('adminManPole') ? [
       { driver_number: parseInt(gv('adminManPole')), position: 1 },
-      { driver_number: parseInt(gv('adminManLast')), position: 20 }
+      // Flamme rouge : pilotes cochés avec position null (ex-aequo supporté)
+      ...checkedLast.map(num => ({ driver_number: num, position: null }))
     ] : [],
     overrides: {
       fastestPit: gv('adminManFP') || null,
@@ -5206,6 +5309,7 @@ window.adminManualResult = async () => {
       top10: gv('adminManT10') || null,
     },
     sprintPos: null,
+    _locked: true, // verrouille ce résultat contre les recalculs API automatiques
   };
 
   log(`📋 Résultat manuel GP${round} ${cal.flag} ${cal.country}…`);
@@ -5247,7 +5351,7 @@ window.adminManualResult = async () => {
       };
       // Archiver le résultat puis recalculer pts+races proprement
       await db.collection('players').doc(uid).collection('results').doc(gpKey).set(clean({
-        total, rows, gpKey, gpRound: round, gpName: cal.country, gpFlag: cal.flag, savedAt: Date.now()
+        total, rows, gpKey, gpRound: round, gpName: cal.country, gpFlag: cal.flag, savedAt: Date.now(), locked: true
       }));
       await recomputePlayerTotals(uid);
       log(`✓ ${name} : ${total} pts archivés`);
