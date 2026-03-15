@@ -3301,10 +3301,25 @@ function _pbDriver(num) {
   return F1_DRIVERS_2026.find(d => d.num === parseInt(num));
 }
 
-// Retourne les numéros déjà sélectionnés (pour griser dans la modal)
-function _pbTakenNums() {
-  return Object.values(_PB_FIELD_MAP)
-    .map(id => { const el=gEl(id); return el ? el.value : ''; })
+// Groupes de champs — un pilote ne peut être sélectionné qu'une fois PAR groupe
+const _PB_GROUPS = {
+  spQuali: ['spole', 'slast'],
+  sprint:  ['sp1', 'sp2', 'sp3'],
+  quali:   ['pole', 'last'],
+  race:    ['p1', 'p2', 'p3', 'r4', 'r5', 'r6', 'r7', 'r8', 'r9', 'r10'],
+  perf:    ['br', 'fp', 't10'],
+};
+
+// Retourne les numéros déjà sélectionnés dans le même groupe que `field`
+function _pbTakenNums(field) {
+  // Trouver le groupe du champ actif
+  const group = field
+    ? Object.values(_PB_GROUPS).find(g => g.includes(field))
+    : null;
+  // Si pas de groupe trouvé, bloquer uniquement les doublons dans tous les champs
+  const fieldsToCheck = group || Object.keys(_PB_FIELD_MAP);
+  return fieldsToCheck
+    .map(f => { const el = gEl(_PB_FIELD_MAP[f]); return el ? el.value : ''; })
     .filter(v => v !== '');
 }
 
@@ -3401,7 +3416,7 @@ window.pbFilterDrivers = function(q) { _pbRenderList(q); };
 
 function _pbRenderList(filter) {
   const q = filter.toLowerCase();
-  const taken = _pbTakenNums();
+  const taken = _pbTakenNums(_pbActiveField);
   const currentVal = _pbActiveField ? gVal(_PB_FIELD_MAP[_pbActiveField]) : '';
   const list = gEl('pbList');
   if (!list) return;
