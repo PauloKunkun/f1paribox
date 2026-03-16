@@ -288,7 +288,7 @@ header{position:sticky;top:0;z-index:100;background:rgba(6,6,12,0.92);border-bot
 /* Top 4-10 */
 .pb-t410-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:5px;}
 .pb-t410-slot{text-align:center;}
-.pb-t410-rank{font-family:'Orbitron',monospace;font-size:9px;font-weight:700;color:var(--muted-hi);margin-bottom:4px;letter-spacing:1px;}
+.pb-t410-rank{font-family:'Orbitron',monospace;font-size:8px;font-weight:700;color:var(--muted-hi);margin-bottom:4px;letter-spacing:0;}
 .pb-t410-card{min-height:56px !important;padding:6px 3px !important;flex-direction:column;gap:2px;}
 .pb-t410-abbr{font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:700;}
 .pb-t410-num{font-family:'Orbitron',monospace;font-size:8px;color:var(--muted);}
@@ -916,9 +916,14 @@ header{position:sticky;top:0;z-index:100;background:rgba(6,6,12,0.92);border-bot
 
     <!-- Sous-onglets Paris -->
     <div class="sub-tabs">
-      <button class="sub-tab active" id="subtab-gp"      onclick="goSubTab('gp')">🎯 GP</button>
-      <button class="sub-tab"        id="subtab-saison"  onclick="goSubTab('saison')">🏆 Saison</button>
-
+      <button class="sub-tab active" id="subtab-gp" onclick="goSubTab('gp')" style="display:flex;align-items:center;justify-content:center;gap:6px">
+        <svg width="13" height="13" viewBox="0 0 52 52" fill="none" xmlns="http://www.w3.org/2000/svg"><line x1="10" y1="8" x2="10" y2="46" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><rect x="10" y="8" width="8" height="8" fill="currentColor"/><rect x="18" y="8" width="8" height="8" fill="rgba(255,255,255,0.08)"/><rect x="26" y="8" width="8" height="8" fill="currentColor"/><rect x="34" y="8" width="8" height="8" fill="rgba(255,255,255,0.08)"/><rect x="10" y="16" width="8" height="8" fill="rgba(255,255,255,0.08)"/><rect x="18" y="16" width="8" height="8" fill="currentColor"/><rect x="26" y="16" width="8" height="8" fill="rgba(255,255,255,0.08)"/><rect x="34" y="16" width="8" height="8" fill="currentColor"/><rect x="10" y="24" width="8" height="8" fill="currentColor"/><rect x="18" y="24" width="8" height="8" fill="rgba(255,255,255,0.08)"/><rect x="26" y="24" width="8" height="8" fill="currentColor"/><rect x="34" y="24" width="8" height="8" fill="rgba(255,255,255,0.08)"/><rect x="10" y="8" width="32" height="24" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>
+        GP
+      </button>
+      <button class="sub-tab" id="subtab-saison" onclick="goSubTab('saison')" style="display:flex;align-items:center;justify-content:center;gap:6px">
+        <svg width="13" height="13" viewBox="0 0 52 52" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M16 9 L36 9 L34 28 C33 33 30 36 26 36 C22 36 19 33 18 28Z" fill="rgba(255,255,255,0.06)" stroke="currentColor" stroke-width="1.6"/><path d="M16 13 C16 13 8 13 8 20 C8 27 16 27 16 27" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round"/><path d="M36 13 C36 13 44 13 44 20 C44 27 36 27 36 27" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round"/><line x1="26" y1="36" x2="26" y2="42" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><rect x="17" y="42" width="18" height="3" rx="1.5" fill="rgba(255,255,255,0.06)" stroke="currentColor" stroke-width="1.4"/><path d="M26 15 L27.4 19.3 L32 19.3 L28.3 21.9 L29.7 26.2 L26 23.6 L22.3 26.2 L23.7 21.9 L20 19.3 L24.6 19.3Z" fill="rgba(255,255,255,0.2)" stroke="currentColor" stroke-width="0.8"/></svg>
+        Saison
+      </button>
     </div>
 
     <!-- Pane : Paris GP -->
@@ -952,6 +957,65 @@ header{position:sticky;top:0;z-index:100;background:rgba(6,6,12,0.92);border-bot
       <!-- Nouveau UI Paris -->
       <div id="parisUI">
 
+        <!-- Sprint Blocs (si applicable) — affichés en premier (ordre chronologique) -->
+        <div id="sprintBlocs" style="display:none">
+          <!-- Sprint Qualifications -->
+          <div class="pb-bloc" id="pb-spQuali">
+            <div class="pb-hdr">
+              <div class="pb-hdr-left">
+                <div class="pb-icon-wrap" style="background:rgba(251,146,60,.12)">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fb923c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+                </div>
+                <div><div class="pb-title" id="sprintQualiBlocTitle">QUALIFICATIONS SPRINT</div><div class="pb-sub" id="pb-sub-spQuali">—</div></div>
+              </div>
+              <div style="display:flex;align-items:center;gap:6px">
+                
+                <span class="pb-lock" id="pb-lock-spQuali" style="display:none">🔒</span>
+                <button id="reset-bloc-spQuali" class="pb-reset" onclick="resetBetsBloc('spQuali')" style="display:none">🗑️</button>
+              </div>
+            </div>
+            <div class="pb-body">
+              <div class="pb-picks-row">
+                <div class="pb-pick-slot"><div class="pb-pick-lbl"><svg width="8" height="8" viewBox="0 0 8 8" style="margin-right:5px;vertical-align:middle;flex-shrink:0"><circle cx="4" cy="4" r="4" fill="#fb923c"/></svg>Sprint Pole · +5</div><div class="pb-pick-card" id="pc-spole" onclick="openDriverModal('spole','Sprint Pole')"></div></div>
+                <div class="pb-pick-slot"><div class="pb-pick-lbl"><svg width="8" height="8" viewBox="0 0 8 8" style="margin-right:5px;vertical-align:middle;flex-shrink:0"><circle cx="4" cy="4" r="4" fill="#E8002D"/></svg>Flamme Rouge · +5</div><div class="pb-pick-card" id="pc-slast" onclick="openDriverModal('slast','Flamme Rouge Sprint')"></div></div>
+              </div>
+            </div>
+          </div>
+          <!-- Course Sprint -->
+          <div class="pb-bloc" id="pb-sprint">
+            <div class="pb-hdr">
+              <div class="pb-hdr-left">
+                <div class="pb-icon-wrap" style="background:rgba(245,200,66,.12)">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#F5C842" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                </div>
+                <div><div class="pb-title" id="sprintRaceBlocTitle">COURSE SPRINT</div><div class="pb-sub" id="pb-sub-sprint">—</div></div>
+              </div>
+              <div style="display:flex;align-items:center;gap:6px">
+                
+                <span class="pb-lock" id="pb-lock-sprint" style="display:none">🔒</span>
+                <button id="reset-bloc-sprint" class="pb-reset" onclick="resetBetsBloc('sprint')" style="display:none">🗑️</button>
+              </div>
+            </div>
+            <div class="pb-body">
+              <div class="pb-podium-row">
+                <div class="pb-podium-slot"><div class="pb-podium-rank gold">🥇 P1 · +5</div><div class="pb-podium-card" id="pc-sp1" onclick="openDriverModal('sp1','Sprint P1')"></div></div>
+                <div class="pb-podium-slot"><div class="pb-podium-rank silver">🥈 P2 · +5</div><div class="pb-podium-card" id="pc-sp2" onclick="openDriverModal('sp2','Sprint P2')"></div></div>
+                <div class="pb-podium-slot"><div class="pb-podium-rank bronze">🥉 P3 · +5</div><div class="pb-podium-card" id="pc-sp3" onclick="openDriverModal('sp3','Sprint P3')"></div></div>
+              </div>
+              <div class="pb-bonus-bar" id="pb-tierce-sprint" style="margin-top:10px">
+                <div style="flex:1">
+                  <div style="display:flex;align-items:center;gap:6px;margin-bottom:2px">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#fb923c" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+                    <span style="font-family:'Orbitron',monospace;font-size:9px;font-weight:700;letter-spacing:1px;color:#fb923c">TIERCÉ PARFAIT SPRINT</span>
+                    <span style="font-family:'Orbitron',monospace;font-size:9px;font-weight:700;color:#fb923c">+13 pts</span>
+                  </div>
+                  <div style="font-size:10px;color:var(--muted);font-family:'Rajdhani',sans-serif">P1, P2 et P3 du sprint dans le bon ordre — bonus automatique</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
         <!-- Qualifications GP -->
         <div class="pb-bloc" id="pb-quali">
           <div class="pb-hdr">
@@ -984,7 +1048,7 @@ header{position:sticky;top:0;z-index:100;background:rgba(6,6,12,0.92);border-bot
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#E8002D" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="3 11 22 2 13 21 11 13 3 11"/></svg>
               </div>
               <div>
-                <div style="font-family:'Orbitron',monospace;font-size:10px;font-weight:700;letter-spacing:2px;color:var(--text)" id="courseHeader">COURSE</div>
+                <div style="font-family:'Orbitron',monospace;font-size:10px;font-weight:700;letter-spacing:2px;color:var(--text)" id="courseHeader">COURSE GRAND PRIX</div>
                 <div style="font-size:11px;color:var(--muted-hi)" id="pb-sub-race">Dimanche</div>
               </div>
             </div>
@@ -1013,6 +1077,16 @@ header{position:sticky;top:0;z-index:100;background:rgba(6,6,12,0.92);border-bot
                 <div style="font-size:10px;color:var(--muted);font-family:'Rajdhani',sans-serif">P1, P2 et P3 dans le bon ordre — bonus automatique</div>
               </div>
             </div>
+            <div class="pb-bonus-bar" style="margin-top:6px;background:rgba(24,200,255,.04);border-color:rgba(24,200,255,.15)">
+              <div style="flex:1">
+                <div style="display:flex;align-items:center;gap:6px;margin-bottom:2px">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--cyan)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                  <span style="font-family:'Orbitron',monospace;font-size:9px;font-weight:700;letter-spacing:1px;color:var(--cyan)">MAUVAIS RANG</span>
+                  <span style="font-family:'Orbitron',monospace;font-size:9px;font-weight:700;color:var(--cyan)">+8 pts</span>
+                </div>
+                <div style="font-size:10px;color:var(--muted);font-family:'Rajdhani',sans-serif">P2 ou P3 dans le podium mais à la mauvaise place</div>
+              </div>
+            </div>
           </div>
 
           <!-- Top 4-10 -->
@@ -1027,15 +1101,25 @@ header{position:sticky;top:0;z-index:100;background:rgba(6,6,12,0.92);border-bot
                 <button id="reset-bloc-top410" class="pb-reset" onclick="resetBetsBloc('top410')" style="display:none">🗑️</button>
               </div>
             </div>
-            <div style="font-size:10px;color:var(--muted);font-family:'Rajdhani',sans-serif;margin-bottom:10px">Parie sur le rang exact de 7 pilotes — 1 point par bonne prédiction, jusqu'à 7 pts au total</div>
+            <div style="font-size:10px;color:var(--muted);font-family:'Rajdhani',sans-serif;margin-bottom:10px">1 point par pilote placé à la bonne position</div>
             <div class="pb-t410-grid">
-              <div class="pb-t410-slot"><div class="pb-t410-rank">P4 · +1</div><div class="pb-pick-card pb-t410-card" id="pc-r4" onclick="openDriverModal('r4','P4')"></div></div>
-              <div class="pb-t410-slot"><div class="pb-t410-rank">P5 · +1</div><div class="pb-pick-card pb-t410-card" id="pc-r5" onclick="openDriverModal('r5','P5')"></div></div>
-              <div class="pb-t410-slot"><div class="pb-t410-rank">P6 · +1</div><div class="pb-pick-card pb-t410-card" id="pc-r6" onclick="openDriverModal('r6','P6')"></div></div>
-              <div class="pb-t410-slot"><div class="pb-t410-rank">P7 · +1</div><div class="pb-pick-card pb-t410-card" id="pc-r7" onclick="openDriverModal('r7','P7')"></div></div>
-              <div class="pb-t410-slot"><div class="pb-t410-rank">P8 · +1</div><div class="pb-pick-card pb-t410-card" id="pc-r8" onclick="openDriverModal('r8','P8')"></div></div>
-              <div class="pb-t410-slot"><div class="pb-t410-rank">P9 · +1</div><div class="pb-pick-card pb-t410-card" id="pc-r9" onclick="openDriverModal('r9','P9')"></div></div>
-              <div class="pb-t410-slot"><div class="pb-t410-rank">P10 · +1</div><div class="pb-pick-card pb-t410-card" id="pc-r10" onclick="openDriverModal('r10','P10')"></div></div>
+              <div class="pb-t410-slot"><div class="pb-t410-rank">P4</div><div class="pb-pick-card pb-t410-card" id="pc-r4" onclick="openDriverModal('r4','P4')"></div></div>
+              <div class="pb-t410-slot"><div class="pb-t410-rank">P5</div><div class="pb-pick-card pb-t410-card" id="pc-r5" onclick="openDriverModal('r5','P5')"></div></div>
+              <div class="pb-t410-slot"><div class="pb-t410-rank">P6</div><div class="pb-pick-card pb-t410-card" id="pc-r6" onclick="openDriverModal('r6','P6')"></div></div>
+              <div class="pb-t410-slot"><div class="pb-t410-rank">P7</div><div class="pb-pick-card pb-t410-card" id="pc-r7" onclick="openDriverModal('r7','P7')"></div></div>
+              <div class="pb-t410-slot"><div class="pb-t410-rank">P8</div><div class="pb-pick-card pb-t410-card" id="pc-r8" onclick="openDriverModal('r8','P8')"></div></div>
+              <div class="pb-t410-slot"><div class="pb-t410-rank">P9</div><div class="pb-pick-card pb-t410-card" id="pc-r9" onclick="openDriverModal('r9','P9')"></div></div>
+              <div class="pb-t410-slot"><div class="pb-t410-rank">P10</div><div class="pb-pick-card pb-t410-card" id="pc-r10" onclick="openDriverModal('r10','P10')"></div></div>
+            </div>
+            <div class="pb-bonus-bar" id="pb-septuple" style="margin-top:10px">
+              <div style="flex:1">
+                <div style="display:flex;align-items:center;gap:6px;margin-bottom:2px">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#18C8FF" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+                  <span style="font-family:'Orbitron',monospace;font-size:9px;font-weight:700;letter-spacing:1px;color:var(--cyan)">SEPTUPLÉ PARFAIT</span>
+                  <span style="font-family:'Orbitron',monospace;font-size:9px;font-weight:700;color:var(--cyan)">+50 pts</span>
+                </div>
+                <div style="font-size:10px;color:var(--muted);font-family:'Rajdhani',sans-serif">P4 à P10 tous placés dans le bon ordre — bonus automatique</div>
+              </div>
             </div>
           </div>
 
@@ -1092,65 +1176,6 @@ header{position:sticky;top:0;z-index:100;background:rgba(6,6,12,0.92);border-bot
           </div>
         </div>
 
-        <!-- Sprint Blocs (si applicable) -->
-        <div id="sprintBlocs" style="display:none">
-          <!-- Sprint Qualifications -->
-          <div class="pb-bloc" id="pb-spQuali">
-            <div class="pb-hdr">
-              <div class="pb-hdr-left">
-                <div class="pb-icon-wrap" style="background:rgba(251,146,60,.12)">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fb923c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
-                </div>
-                <div><div class="pb-title" id="sprintQualiBlocTitle">SPRINT QUALIFICATIONS</div><div class="pb-sub" id="pb-sub-spQuali">—</div></div>
-              </div>
-              <div style="display:flex;align-items:center;gap:6px">
-                
-                <span class="pb-lock" id="pb-lock-spQuali" style="display:none">🔒</span>
-                <button id="reset-bloc-spQuali" class="pb-reset" onclick="resetBetsBloc('spQuali')" style="display:none">🗑️</button>
-              </div>
-            </div>
-            <div class="pb-body">
-              <div class="pb-picks-row">
-                <div class="pb-pick-slot"><div class="pb-pick-lbl"><svg width="8" height="8" viewBox="0 0 8 8" style="margin-right:5px;vertical-align:middle;flex-shrink:0"><circle cx="4" cy="4" r="4" fill="#fb923c"/></svg>Sprint Pole · +5</div><div class="pb-pick-card" id="pc-spole" onclick="openDriverModal('spole','Sprint Pole')"></div></div>
-                <div class="pb-pick-slot"><div class="pb-pick-lbl"><svg width="8" height="8" viewBox="0 0 8 8" style="margin-right:5px;vertical-align:middle;flex-shrink:0"><circle cx="4" cy="4" r="4" fill="#E8002D"/></svg>Flamme Rouge · +5</div><div class="pb-pick-card" id="pc-slast" onclick="openDriverModal('slast','Flamme Rouge Sprint')"></div></div>
-              </div>
-            </div>
-          </div>
-          <!-- Sprint Race -->
-          <div class="pb-bloc" id="pb-sprint">
-            <div class="pb-hdr">
-              <div class="pb-hdr-left">
-                <div class="pb-icon-wrap" style="background:rgba(245,200,66,.12)">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#F5C842" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-                </div>
-                <div><div class="pb-title" id="sprintRaceBlocTitle">SPRINT RACE</div><div class="pb-sub" id="pb-sub-sprint">—</div></div>
-              </div>
-              <div style="display:flex;align-items:center;gap:6px">
-                
-                <span class="pb-lock" id="pb-lock-sprint" style="display:none">🔒</span>
-                <button id="reset-bloc-sprint" class="pb-reset" onclick="resetBetsBloc('sprint')" style="display:none">🗑️</button>
-              </div>
-            </div>
-            <div class="pb-body">
-              <div class="pb-podium-row">
-                <div class="pb-podium-slot"><div class="pb-podium-rank gold">🥇 P1 · +5</div><div class="pb-podium-card" id="pc-sp1" onclick="openDriverModal('sp1','Sprint P1')"></div></div>
-                <div class="pb-podium-slot"><div class="pb-podium-rank silver">🥈 P2 · +5</div><div class="pb-podium-card" id="pc-sp2" onclick="openDriverModal('sp2','Sprint P2')"></div></div>
-                <div class="pb-podium-slot"><div class="pb-podium-rank bronze">🥉 P3 · +5</div><div class="pb-podium-card" id="pc-sp3" onclick="openDriverModal('sp3','Sprint P3')"></div></div>
-              </div>
-              <div class="pb-bonus-bar" id="pb-tierce-sprint" style="margin-top:10px">
-                <div style="flex:1">
-                  <div style="display:flex;align-items:center;gap:6px;margin-bottom:2px">
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#fb923c" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
-                    <span style="font-family:'Orbitron',monospace;font-size:9px;font-weight:700;letter-spacing:1px;color:#fb923c">TIERCÉ PARFAIT SPRINT</span>
-                    <span style="font-family:'Orbitron',monospace;font-size:9px;font-weight:700;color:#fb923c">+13 pts</span>
-                  </div>
-                  <div style="font-size:10px;color:var(--muted);font-family:'Rajdhani',sans-serif">P1, P2 et P3 du sprint dans le bon ordre — bonus automatique</div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
       </div><!-- /parisUI -->
       <div id="resetBar" style="display:none;margin-top:8px">
         <button class="btn-action-reset" id="resetBetsBtn">🗑️ Réinitialiser mes paris</button>
@@ -1169,7 +1194,7 @@ header{position:sticky;top:0;z-index:100;background:rgba(6,6,12,0.92);border-bot
         <div class="pb-hdr">
           <div class="pb-hdr-left">
             <div class="pb-icon-wrap" style="background:rgba(245,200,66,.12)">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#F5C842" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M6 20v-2a6 6 0 0 1 12 0v2"/></svg>
+              <svg width="16" height="16" viewBox="0 0 62 62" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M10 28 C10 15 16 8 26 8 C36 8 42 15 42 28 L42 35 C42 37 40 39 38 39 L14 39 C12 39 10 37 10 35Z" fill="rgba(245,200,66,0.1)" stroke="#F5C842" stroke-width="1.6"/><path d="M12 30 C13 36 18 40 26 40 C34 40 39 36 40 30 L40 27 C38 23 33 21 26 21 C19 21 14 23 12 27Z" fill="rgba(245,200,66,0.18)" stroke="#F5C842" stroke-width="1.3"/><path d="M15 29 C17 26 20 24.5 24 24" stroke="rgba(255,255,255,0.25)" stroke-width="1.2" stroke-linecap="round"/><path d="M10 27 C14 24 19 22.5 26 22.5 C33 22.5 38 24 42 27" stroke="#E8002D" stroke-width="1.8" fill="none" stroke-linecap="round"/><rect x="22" y="11" width="8" height="3" rx="1.5" fill="rgba(245,200,66,0.2)" stroke="#F5C842" stroke-width="1"/><rect x="24" y="8" width="4" height="4" rx="1" fill="rgba(245,200,66,0.5)" stroke="#F5C842" stroke-width="1"/><path d="M14 38 L12 44" stroke="#F5C842" stroke-width="1.4" stroke-linecap="round"/><path d="M38 38 L40 44" stroke="#F5C842" stroke-width="1.4" stroke-linecap="round"/><path d="M12 44 L40 44" stroke="#F5C842" stroke-width="1.4" stroke-linecap="round"/></svg>
             </div>
             <div>
               <div class="pb-title">CHAMPIONNAT PILOTES</div>
@@ -1187,15 +1212,15 @@ header{position:sticky;top:0;z-index:100;background:rgba(6,6,12,0.92);border-bot
           </div>
           <div class="pb-podium-row">
             <div class="pb-podium-slot">
-              <div class="pb-podium-rank gold">🥇 Champion · +35</div>
+              <div class="pb-podium-rank gold">🥇 Champion · +50</div>
               <div class="pb-podium-card" id="sai-pc-drv-p1" onclick="openSaisonDriverModal('drv-p1','Champion Pilotes')"></div>
             </div>
             <div class="pb-podium-slot">
-              <div class="pb-podium-rank silver">🥈 2ème · +35</div>
+              <div class="pb-podium-rank silver">🥈 2ème · +50</div>
               <div class="pb-podium-card" id="sai-pc-drv-p2" onclick="openSaisonDriverModal('drv-p2','2ème Pilotes')"></div>
             </div>
             <div class="pb-podium-slot">
-              <div class="pb-podium-rank bronze">🥉 3ème · +25</div>
+              <div class="pb-podium-rank bronze">🥉 3ème · +50</div>
               <div class="pb-podium-card" id="sai-pc-drv-p3" onclick="openSaisonDriverModal('drv-p3','3ème Pilotes')"></div>
             </div>
           </div>
@@ -1227,7 +1252,7 @@ header{position:sticky;top:0;z-index:100;background:rgba(6,6,12,0.92);border-bot
         <div class="pb-hdr">
           <div class="pb-hdr-left">
             <div class="pb-icon-wrap" style="background:rgba(24,200,255,.12)">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#18C8FF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18"/><path d="M9 21V9"/></svg>
+              <svg width="16" height="16" viewBox="0 0 62 62" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="6" y="14" width="50" height="38" rx="2" fill="rgba(24,200,255,0.06)" stroke="#18C8FF" stroke-width="1.6"/><path d="M4 16 L31 6 L58 16" stroke="#18C8FF" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" fill="none"/><rect x="10" y="28" width="18" height="22" rx="1" fill="rgba(24,200,255,0.08)" stroke="#18C8FF" stroke-width="1.3"/><rect x="34" y="28" width="18" height="22" rx="1" fill="rgba(24,200,255,0.08)" stroke="#18C8FF" stroke-width="1.3"/><line x1="10" y1="35" x2="28" y2="35" stroke="#18C8FF" stroke-width="0.8" opacity="0.5"/><line x1="10" y1="42" x2="28" y2="42" stroke="#18C8FF" stroke-width="0.8" opacity="0.5"/><line x1="34" y1="35" x2="52" y2="35" stroke="#18C8FF" stroke-width="0.8" opacity="0.5"/><line x1="34" y1="42" x2="52" y2="42" stroke="#18C8FF" stroke-width="0.8" opacity="0.5"/><line x1="31" y1="28" x2="31" y2="50" stroke="#18C8FF" stroke-width="1" opacity="0.4"/><rect x="10" y="17" width="8" height="7" rx="1" fill="rgba(24,200,255,0.15)" stroke="#18C8FF" stroke-width="1"/><rect x="44" y="17" width="8" height="7" rx="1" fill="rgba(24,200,255,0.15)" stroke="#18C8FF" stroke-width="1"/><rect x="22" y="17" width="18" height="7" rx="1" fill="rgba(24,200,255,0.1)" stroke="#18C8FF" stroke-width="1"/><line x1="6" y1="50" x2="56" y2="50" stroke="rgba(24,200,255,0.3)" stroke-width="1" stroke-dasharray="3 2"/></svg>
             </div>
             <div>
               <div class="pb-title">CHAMPIONNAT ÉCURIES</div>
@@ -1245,15 +1270,15 @@ header{position:sticky;top:0;z-index:100;background:rgba(6,6,12,0.92);border-bot
           </div>
           <div class="pb-podium-row">
             <div class="pb-podium-slot">
-              <div class="pb-podium-rank gold">🥇 Champion · +20</div>
+              <div class="pb-podium-rank gold">🥇 Champion · +30</div>
               <div class="pb-podium-card" id="sai-pc-team-p1" onclick="openSaisonTeamModal('team-p1','Champion Écuries')"></div>
             </div>
             <div class="pb-podium-slot">
-              <div class="pb-podium-rank silver">🥈 2ème · +12</div>
+              <div class="pb-podium-rank silver">🥈 2ème · +30</div>
               <div class="pb-podium-card" id="sai-pc-team-p2" onclick="openSaisonTeamModal('team-p2','2ème Écuries')"></div>
             </div>
             <div class="pb-podium-slot">
-              <div class="pb-podium-rank bronze">🥉 3ème · +8</div>
+              <div class="pb-podium-rank bronze">🥉 3ème · +30</div>
               <div class="pb-podium-card" id="sai-pc-team-p3" onclick="openSaisonTeamModal('team-p3','3ème Écuries')"></div>
             </div>
           </div>
@@ -1752,7 +1777,13 @@ function getResultsUnlockDef() {
   return new Date(activeCal.raceDate.getTime() + 7200000);
 }
 // Révélation des paris = samedi 00h01 (vendredi 23h59 + 2min) du week-end courant
-const ADMIN_PASSWORD       = 'f1admin2026';
+const ADMIN_PASSWORD_HASH  = 'a5f25dc6271c92a50b17e9459c5b72b3a3a7048038ea517cfec7ec86b72087da';
+async function _checkAdminPwd() {
+  const val = gVal('adminPwd');
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(val));
+  const hash = Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');
+  return hash === ADMIN_PASSWORD_HASH;
+}
 // Cache local des overrides manuels admin (fastestPit par round)
 window._raceOverrides = {};
 window._adminUnlocked = false;
@@ -3408,6 +3439,13 @@ window.checkBonus = () => {
   const spTierce = sa&&sb&&sc&&sa!==sb&&sa!==sc&&sb!==sc;
   const spBar = gEl('pb-tierce-sprint');
   if (spBar) spBar.classList.toggle('active', !!spTierce);
+  // Septuplé parfait top 4-10
+  const r4=gVal('pred-r4'),r5=gVal('pred-r5'),r6=gVal('pred-r6'),r7=gVal('pred-r7'),r8=gVal('pred-r8'),r9=gVal('pred-r9'),r10=gVal('pred-r10');
+  const sepVals = [r4,r5,r6,r7,r8,r9,r10];
+  const sepFilled = sepVals.every(v=>v);
+  const sepUnique = sepFilled && new Set(sepVals).size === 7;
+  const sepBar = gEl('pb-septuple');
+  if (sepBar) sepBar.classList.toggle('active', !!sepUnique);
   // Sync visuels cartes
   _pbSyncAllCards();
 };
@@ -3853,9 +3891,9 @@ function calcSeasonScore(bets, standings) {
   };
 
   // Pilotes
-  if (bets.drv?.p1) checkPodium(bets.drv.p1, standings.drvP1, standings.drvP2, standings.drvP3, 35, 0, drvName);
-  if (bets.drv?.p2) checkPodium(bets.drv.p2, standings.drvP2, standings.drvP1, standings.drvP3, 35, 10, drvName);
-  if (bets.drv?.p3) checkPodium(bets.drv.p3, standings.drvP3, standings.drvP1, standings.drvP2, 25, 10, drvName);
+  if (bets.drv?.p1) checkPodium(bets.drv.p1, standings.drvP1, standings.drvP2, standings.drvP3, 50, 0, drvName);
+  if (bets.drv?.p2) checkPodium(bets.drv.p2, standings.drvP2, standings.drvP1, standings.drvP3, 50, 20, drvName);
+  if (bets.drv?.p3) checkPodium(bets.drv.p3, standings.drvP3, standings.drvP1, standings.drvP2, 50, 20, drvName);
 
   // Bonus tiercé pilotes
   if (bets.drv?.p1 && bets.drv?.p2 && bets.drv?.p3) {
@@ -3864,9 +3902,9 @@ function calcSeasonScore(bets, standings) {
   }
 
   // Écuries
-  if (bets.team?.p1) checkPodium(bets.team.p1, standings.teamP1, standings.teamP2, standings.teamP3, 20, 0, teamName);
-  if (bets.team?.p2) checkPodium(bets.team.p2, standings.teamP2, standings.teamP1, standings.teamP3, 12, 6, teamName);
-  if (bets.team?.p3) checkPodium(bets.team.p3, standings.teamP3, standings.teamP1, standings.teamP2, 8, 6, teamName);
+  if (bets.team?.p1) checkPodium(bets.team.p1, standings.teamP1, standings.teamP2, standings.teamP3, 30, 0, teamName);
+  if (bets.team?.p2) checkPodium(bets.team.p2, standings.teamP2, standings.teamP1, standings.teamP3, 30, 15, teamName);
+  if (bets.team?.p3) checkPodium(bets.team.p3, standings.teamP3, standings.teamP1, standings.teamP2, 30, 15, teamName);
 
   // Bonus tiercé écuries
   if (bets.team?.p1 && bets.team?.p2 && bets.team?.p3) {
@@ -4537,7 +4575,6 @@ async function renderResults() {
           </div>
           <div class="gp25-right" style="text-align:right;display:flex;flex-direction:column;align-items:flex-end;gap:3px">
             <div id="rr-best-${cal.round}" style="font-family:'Orbitron',monospace;font-size:10px;font-weight:700;color:var(--gold);letter-spacing:.5px"></div>
-            <div id="rr-s-${cal.round}" style="font-family:'Orbitron',monospace;font-size:13px;font-weight:900;color:var(--muted)"></div>
           </div>
         </div>
         <div class="gp25-body" id="rrb-${cal.round}">
@@ -4811,12 +4848,7 @@ async function _loadRRResult(r) {
   // Calculer le total global
   const grandTotal = Object.values(eventDocs).reduce((s, d) => s + (d.total || 0), 0);
 
-  // Mettre à jour le score dans l'en-tête
-  if (scoreEl) {
-    const sign = grandTotal >= 0 ? '+' : '';
-    scoreEl.textContent = sign + grandTotal + ' pts';
-    scoreEl.style.color = grandTotal > 0 ? 'var(--green)' : grandTotal < 0 ? 'var(--red)' : 'var(--muted)';
-  }
+  // Mettre à jour le score dans l'en-tête — supprimé (redondant avec MON SCORE)
 
   // Affichage si aucun résultat archivé
   if (!Object.keys(eventDocs).length) {
@@ -5143,7 +5175,10 @@ function calcReal(b,data){
     addRow(`Podium P${rank} — ${drvByNum(pred)}`,pts,pts>0,ex?'Rang exact ✓':op?'Sur le podium':actualDrv?`Manqué · c'était ${drvByNum(actualDrv)}`:'Manqué', parseInt(pred));
   });
   if(b.p.p1&&b.p.p2&&b.p.p3&&fp[parseInt(b.p.p1)]===1&&fp[parseInt(b.p.p2)]===2&&fp[parseInt(b.p.p3)]===3){total+=25;addRow('⚡ Bonus Tiercé Parfait',25,true,'',null);}
-  if(b.top410){const ranks={r4:4,r5:5,r6:6,r7:7,r8:8,r9:9,r10:10};let t410pts=0;Object.entries(ranks).forEach(([key,rank])=>{const pred=b.top410[key];if(!pred)return;const ap=fp[parseInt(pred)];const hit=ap===rank;const pts=hit?1:0;t410pts+=pts;total+=pts;const actualDrv=Object.entries(fp).find(([d,p])=>p===rank)?.[0];addRow(`P${rank} — ${drvByNum(pred)}`,pts,hit,hit?'Rang exact ✓':ap?`Finit P${ap}`:actualDrv?`C'était ${drvByNum(actualDrv)}`:'Pas classé', parseInt(pred));});}
+  if(b.top410){const ranks={r4:4,r5:5,r6:6,r7:7,r8:8,r9:9,r10:10};let t410pts=0;Object.entries(ranks).forEach(([key,rank])=>{const pred=b.top410[key];if(!pred)return;const ap=fp[parseInt(pred)];const hit=ap===rank;const pts=hit?1:0;t410pts+=pts;total+=pts;const actualDrv=Object.entries(fp).find(([d,p])=>p===rank)?.[0];addRow(`P${rank} — ${drvByNum(pred)}`,pts,hit,hit?'Rang exact ✓':ap?`Finit P${ap}`:actualDrv?`C'était ${drvByNum(actualDrv)}`:'Pas classé', parseInt(pred));});
+    const sepPerfect=Object.entries(ranks).every(([key,rank])=>{const pred=b.top410[key];return pred&&fp[parseInt(pred)]===rank;});
+    if(sepPerfect){total+=50;addRow('⚡ Bonus Septuplé Parfait',50,true,'',null);}
+  }
   if(b.perf.br){
     const gridSrc = (data.grid && data.grid.length > 0)
       ? data.grid
@@ -5270,16 +5305,16 @@ function renderBetsStatusBar() {
     const now2 = new Date();
     // Trouver le prochain verrou
     const next = [
-      { label: 'Qualifs',       date: closes.quali   },
-      { label: 'Grand Prix',    date: closes.race     },
-      { label: 'Sprint Quali',  date: closes.spQuali  },
-      { label: 'Sprint Race',   date: closes.sprint   },
+      { label: 'les Qualifications',        date: closes.quali   },
+      { label: 'les Qualifications Sprint', date: closes.spQuali  },
+      { label: 'la Course Grand Prix',      date: closes.race     },
+      { label: 'la Course Sprint',          date: closes.sprint   },
     ].filter(x => x.date && x.date > now2).sort((a,b) => a.date - b.date)[0];
     const diff = next ? next.date - now2 : 0;
     bar.className = 'bets-status-bar open';
     bar.innerHTML = `<div>
       <div class="bets-status-lbl">🟢 PARIS WEEKEND OUVERTS</div>
-      <div style="font-size:10px;color:var(--muted-hi);margin-top:2px">${flag} Grand Prix ${country}${next ? ` · ferme avant ${next.label}` : ''}</div>
+      <div style="font-size:10px;color:var(--muted-hi);margin-top:2px">${flag} Grand Prix ${country}${next ? ` · les paris pour ${next.label} ferment 10 min avant le début de celle-ci` : ''}</div>
     </div>
     <div class="bets-status-cntd">${next ? fmtCountdown2(diff) : 'BIENTÔT'}</div>`;
     _applyBetsFormState('open');
@@ -5802,7 +5837,7 @@ function renderSaisonStatusBar() {
       html = `<div class="bets-status-bar open">
         <div>
           <div class="bets-status-lbl">🟢 PARIS SAISON OUVERTS</div>
-          <div style="font-size:10px;color:var(--muted-hi);margin-top:2px">${gpLabel} · ferme avant les qualifs</div>
+          <div style="font-size:10px;color:var(--muted-hi);margin-top:2px">${gpLabel} · ferme avant les Qualifications</div>
         </div>
         <div class="bets-status-cntd">${cntd}</div>
       </div>`;
@@ -5977,7 +6012,7 @@ window.adminDiagnostic = async () => {
 // Supprime les anciens docs r{n}_2026 pour les rounds qui ont déjà
 // des événements séparés {event}_r{n}_2026
 window.adminCleanDatabase = async () => {
-  if (gVal('adminPwd') !== ADMIN_PASSWORD) { notif('❌ Mot de passe incorrect'); return; }
+  if (!await _checkAdminPwd()) { notif('❌ Mot de passe incorrect'); return; }
   const logEl = gEl('adminFixLog');
   const log = msg => { logEl.innerHTML += msg + '<br>'; logEl.scrollTop = logEl.scrollHeight; };
   logEl.innerHTML = '';
@@ -6031,7 +6066,7 @@ window.adminCleanDatabase = async () => {
 };
 
 window.adminDeletePlayer = async () => {
-  if (gVal('adminPwd') !== ADMIN_PASSWORD) { notif('❌ Mot de passe incorrect'); return; }
+  if (!await _checkAdminPwd()) { notif('❌ Mot de passe incorrect'); return; }
   const uid = gEl('adminDelPlayer').value;
   if (!uid) { notif('❌ Choisis un joueur'); return; }
   const logEl = gEl('adminDelLog');
@@ -6089,7 +6124,7 @@ window.adminDeletePlayer = async () => {
 // ─── Rafraîchir les clés de session depuis OpenF1 ────────────────
 // ─── Sync pilotes 2026 vers Firebase ─────────────────────────────
 window.adminSyncDrivers = async () => {
-  if (gVal('adminPwd') !== ADMIN_PASSWORD) { notif('❌ Mot de passe incorrect'); return; }
+  if (!await _checkAdminPwd()) { notif('❌ Mot de passe incorrect'); return; }
   const logEl = gEl('adminFixLog');
   const log = msg => { logEl.innerHTML += msg + '<br>'; logEl.scrollTop = logEl.scrollHeight; };
   logEl.innerHTML = '';
@@ -6108,7 +6143,7 @@ window.adminSyncDrivers = async () => {
 };
 
 window.adminRefreshSessionKeys = async () => {
-  if (gVal('adminPwd') !== ADMIN_PASSWORD) { notif('❌ Mot de passe incorrect'); return; }
+  if (!await _checkAdminPwd()) { notif('❌ Mot de passe incorrect'); return; }
   const logEl = gEl('adminFixLog');
   const log = msg => { logEl.innerHTML += msg + '<br>'; logEl.scrollTop = logEl.scrollHeight; };
   logEl.innerHTML = '';
@@ -6169,7 +6204,7 @@ window.adminRefreshSessionKeys = async () => {
 };
 
 window.adminFullReset = async () => {
-  if (gVal('adminPwd') !== ADMIN_PASSWORD) { notif('❌ Mot de passe incorrect'); return; }
+  if (!await _checkAdminPwd()) { notif('❌ Mot de passe incorrect'); return; }
   if (!confirm('RESET COMPLET\n\nSupprime :\n- Tous les résultats\n- Tous les paris\n- Toutes les clés de session\n- Remet pts=0 races=0\n\nContinuer ?')) return;
 
   const logEl = gEl('adminFixLog');
@@ -6223,7 +6258,7 @@ window.adminFullReset = async () => {
 ;
 
 window.adminMigrateBets = async () => {
-  if (gVal('adminPwd') !== ADMIN_PASSWORD) { notif('❌ Mot de passe incorrect'); return; }
+  if (!await _checkAdminPwd()) { notif('❌ Mot de passe incorrect'); return; }
   const logEl = gEl('adminFixLog');
   const log = msg => { if (logEl) { logEl.innerHTML += msg + '<br>'; logEl.scrollTop = logEl.scrollHeight; } dbg(msg, 'inf'); };
   const btn = gEl('migrateBetsBtn');
@@ -6303,7 +6338,7 @@ window.adminMigrateBets = async () => {
 
 // ─── Saisie des paris d'un joueur par l'admin ────────────────────
 window.adminSaveBets = async () => {
-  if (gVal('adminPwd') !== ADMIN_PASSWORD) { notif('❌ Mot de passe incorrect'); return; }
+  if (!await _checkAdminPwd()) { notif('❌ Mot de passe incorrect'); return; }
   const logEl = gEl('adminBetLog');
   const log = msg => { logEl.innerHTML = msg; };
   const uid = gEl('adminBetPlayer').value;
@@ -6337,7 +6372,7 @@ window.adminSaveBets = async () => {
 };
 
 window.adminRefreshOnePlayer = async () => {
-  if (gVal('adminPwd') !== ADMIN_PASSWORD) { notif('❌ Mot de passe incorrect'); return; }
+  if (!await _checkAdminPwd()) { notif('❌ Mot de passe incorrect'); return; }
   const uid = gEl('adminRefreshPlayer').value;
   const round = parseInt(gEl('adminRefreshRound').value);
   const logEl = gEl('adminRefreshLog');
@@ -6409,7 +6444,7 @@ window.adminRefreshOnePlayer = async () => {
 };
 
 window.adminDeleteGPResults = async () => {
-  if (gVal('adminPwd') !== ADMIN_PASSWORD) { notif('❌ Mot de passe incorrect'); return; }
+  if (!await _checkAdminPwd()) { notif('❌ Mot de passe incorrect'); return; }
   const uid = gEl('adminDelGPPlayer').value;
   const round = parseInt(gEl('adminDelRound').value);
   const logEl = gEl('adminDelGPLog');
@@ -6438,7 +6473,7 @@ window.adminDeleteGPResults = async () => {
 };
 
 window.adminFixTotals = async () => {
-  if (gVal('adminPwd') !== ADMIN_PASSWORD) { notif('❌ Mot de passe incorrect'); return; }
+  if (!await _checkAdminPwd()) { notif('❌ Mot de passe incorrect'); return; }
   const logEl = gEl('adminFixLog');
   const log = msg => { logEl.innerHTML += msg + '<br>'; logEl.scrollTop = logEl.scrollHeight; };
   logEl.innerHTML = '';
@@ -6472,7 +6507,7 @@ window.adminFixTotals = async () => {
 };
 
 window.adminForceRecalc = async () => {
-  if (gVal('adminPwd') !== ADMIN_PASSWORD) { notif('❌ Mot de passe incorrect'); return; }
+  if (!await _checkAdminPwd()) { notif('❌ Mot de passe incorrect'); return; }
   const round = parseInt(gEl('adminRecalcRound').value);
   if (!round) { notif('❌ Choisis un GP'); return; }
   const btn = gEl('adminRecalcBtn');
@@ -6554,7 +6589,7 @@ window.adminForceRecalc = async () => {
 };
 
 window.unlockResults = async () => {
-  if(gVal('adminPwd')!==ADMIN_PASSWORD){notif('❌ Mot de passe incorrect');return;}
+  if(!await _checkAdminPwd()){notif('❌ Mot de passe incorrect');return;}
   await setDoc(doc(db,'config','race'),{unlocked:true,unlockedAt:Date.now()});
   resultsUnlocked=true; notif('✅ Résultats déverrouillés !'); gEl('adminPanel').style.display='none'; startChrono();
 };
@@ -6562,7 +6597,7 @@ window.unlockResults = async () => {
 
 // ─── Saisir un résultat GP a posteriori ───────────────────────
 window.adminManualResult = async () => {
-  if (gVal('adminPwd') !== ADMIN_PASSWORD) { notif('❌ Mot de passe incorrect'); return; }
+  if (!await _checkAdminPwd()) { notif('❌ Mot de passe incorrect'); return; }
   const round = parseInt(gEl('adminManualRound').value);
   if (!round) { notif('❌ Choisis un GP'); return; }
   const cal = CALENDAR.find(c => c.round === round);
@@ -7009,13 +7044,13 @@ function buildGuideContent(id) {
   if (id === "saison") return (
     '<p style="font-size:13px;color:#6b6b80;margin-bottom:16px">Paris long terme sur les champions 2026. Ferment à la mi-saison (après GP12 · Belgique).</p>'
     + '<div class="g-section-title" style="color:#FFD700">🏎 Championnat Pilotes</div>'
-    + gRow("🥇","Champion Pilotes","+35 pts","1er du championnat du monde","#FFD700")
-    + gRow("🥈","2ème Pilotes","+35 pts","2ème du championnat","#C0C0C0")
-    + gRow("🥉","3ème Pilotes","+25 pts","3ème du championnat","#CD7F32")
+    + gRow("🥇","Champion Pilotes","+50 pts","1er du championnat du monde","#FFD700")
+    + gRow("🥈","2ème Pilotes","+50 pts","2ème du championnat","#C0C0C0")
+    + gRow("🥉","3ème Pilotes","+50 pts","3ème du championnat","#CD7F32")
     + '<div class="g-section-title" style="color:#00D4FF;margin-top:20px">🏭 Championnat Constructeurs</div>'
-    + gRow("🥇","Champion Constructeurs","+35 pts","Écurie championne du monde","#FFD700")
-    + gRow("🥈","2ème Constructeurs","+35 pts","2ème écurie","#C0C0C0")
-    + gRow("🥉","3ème Constructeurs","+25 pts","3ème écurie","#CD7F32")
+    + gRow("🥇","Champion Constructeurs","+30 pts","Écurie championne du monde","#FFD700")
+    + gRow("🥈","2ème Constructeurs","+30 pts","2ème écurie","#C0C0C0")
+    + gRow("🥉","3ème Constructeurs","+30 pts","3ème écurie","#CD7F32")
     + gInfo("Bonus +10 pts si tu as 2 pilotes corrects sur 3 mais dans le mauvais ordre.","#b464ff")
     + gInfo("Les paris Saison restent secrets jusqu&#x27;à la fermeture au GP de Belgique (GP12).","#FFD700")
   );
@@ -7089,15 +7124,16 @@ function buildGuideContent(id) {
         ["Podium (mauvaise place)","+8"],
         ["Tiercé Parfait bonus","+25"],
         ["Top 4-10 (par rang exact)","+1 chacun"],
+        ["Septuplé Parfait (P4-P10)","+50"],
         ["Remontée / Pit stop","+10"],
         ["Top 10","+5"],
         ["Sprint Pole / Flamme Rouge","+5"],
         ["Sprint Podium (rang exact)","+5"],
         ["Sprint Podium (mauvaise place)","+4"],
         ["Sprint Tiercé Parfait","+13"],
-        ["Champion Pilotes / Constructeurs","+35"],
-        ["2ème Pilotes / Constructeurs","+35"],
-        ["3ème Pilotes / Constructeurs","+25"],
+        ["Champion Pilotes / Constructeurs","+50 / +30"],
+        ["2ème Pilotes / Constructeurs","+50 / +30"],
+        ["3ème Pilotes / Constructeurs","+50 / +30"],
       ].map(function(r){return '<tr><td>'+r[0]+'</td><td class="pts">'+r[1]+'</td></tr>';}).join("")
     + "</table>"
   );
