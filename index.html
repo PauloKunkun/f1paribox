@@ -10,72 +10,109 @@
 <style>
 :root{
   color-scheme: dark;
-  --red:#E8002D;--gold:#FFD700;--silver:#C0C0C0;--bronze:#CD7F32;
-  --bg:#050508;--bg2:#0a0a10;--bg3:#111118;
-  --border:rgba(255,255,255,0.07);--text:#e8e8f0;--muted:#6b6b80;
-  --green:#00FF87;--cyan:#00D4FF;
+  --red:#E8002D;--red-glow:rgba(232,0,45,0.35);--red-dim:rgba(232,0,45,0.12);
+  --gold:#F5C842;--gold-glow:rgba(245,200,66,0.25);
+  --silver:#B8C4CC;--bronze:#C8834A;
+  --bg:#06060C;--bg2:#0C0C16;--bg3:#13131F;--bg4:#1A1A28;
+  --border:rgba(255,255,255,0.07);--border-hi:rgba(255,255,255,0.13);
+  --text:#EEF0F8;--muted:#5E6079;--muted-hi:#9496B4;
+  --green:#00E87A;--green-glow:rgba(0,232,122,0.2);
+  --cyan:#18C8FF;--cyan-glow:rgba(24,200,255,0.2);
+  --purple:#A855F7;
+  /* Mesh gradient stops */
+  --mesh1:radial-gradient(ellipse 60% 50% at 15% 20%, rgba(232,0,45,0.07) 0%, transparent 70%);
+  --mesh2:radial-gradient(ellipse 50% 60% at 85% 80%, rgba(24,200,255,0.05) 0%, transparent 70%);
+  --mesh3:radial-gradient(ellipse 40% 40% at 50% 50%, rgba(245,200,66,0.03) 0%, transparent 70%);
 }
 *{margin:0;padding:0;box-sizing:border-box;}
-body{background:var(--bg);color:var(--text);font-family:'Rajdhani',sans-serif;min-height:100vh;overflow-x:hidden;}
+body{
+  background:var(--bg);
+  color:var(--text);
+  font-family:'Rajdhani',sans-serif;
+  min-height:100vh;
+  overflow-x:hidden;
+}
 svg{display:block;}
-#profHelmet,#headerHelmet{background:var(--bg2);border-radius:10px;overflow:hidden;}
-body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,0.03) 2px,rgba(0,0,0,0.03) 4px);pointer-events:none;z-index:999;}
+#profHelmet,#headerHelmet{background:var(--bg2);border-radius:12px;overflow:hidden;}
+
+/* ── Global ambient mesh ── */
+body::before{
+  content:'';
+  position:fixed;
+  inset:0;
+  background:var(--mesh1),var(--mesh2),var(--mesh3);
+  pointer-events:none;
+  z-index:0;
+}
+/* Subtle scanline texture */
+body::after{
+  content:'';
+  position:fixed;
+  inset:0;
+  background:repeating-linear-gradient(0deg,transparent,transparent 3px,rgba(0,0,0,0.025) 3px,rgba(0,0,0,0.025) 4px);
+  pointer-events:none;
+  z-index:1;
+}
+/* Ensure content sits above ambience */
+header,#authScreen,.content,.race-banner,.chrono-wrap,.tabs{position:relative;z-index:2;}
 
 /* ══ AUTH ══ */
 #authScreen{position:fixed;inset:0;background:var(--bg);z-index:500;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding:40px 20px 40px;overflow-y:auto;gap:0;}
-.auth-logo{font-family:'Orbitron',monospace;font-weight:900;font-size:30px;color:var(--red);text-shadow:0 0 40px rgba(232,0,45,0.5);letter-spacing:6px;margin-bottom:4px;}
+.auth-logo{font-family:'Orbitron',monospace;font-weight:900;font-size:30px;color:var(--red);text-shadow:0 0 60px var(--red-glow),0 0 120px rgba(232,0,45,0.15);letter-spacing:6px;margin-bottom:4px;animation:logoGlow 3s ease-in-out infinite alternate;}
+@keyframes logoGlow{from{text-shadow:0 0 40px var(--red-glow)}to{text-shadow:0 0 80px var(--red-glow),0 0 160px rgba(232,0,45,0.1)}}
 .auth-logo span{color:var(--text);}
-.auth-sub{font-size:11px;color:var(--muted);letter-spacing:3px;text-transform:uppercase;margin-bottom:28px;}
-.auth-card{width:100%;max-width:360px;background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:22px;}
+.auth-sub{font-size:11px;color:var(--muted-hi);letter-spacing:4px;text-transform:uppercase;margin-bottom:28px;}
+.auth-card{width:100%;max-width:360px;background:rgba(19,19,31,0.85);border:1px solid var(--border-hi);border-radius:12px;padding:24px;backdrop-filter:blur(20px);box-shadow:0 24px 80px rgba(0,0,0,0.6),0 0 0 1px rgba(255,255,255,0.04) inset;}
 .auth-tabs{display:flex;margin-bottom:18px;border-bottom:1px solid var(--border);}
-.auth-tab{flex:1;background:none;border:none;border-bottom:2px solid transparent;color:var(--muted);font-family:'Orbitron',monospace;font-size:11px;font-weight:700;letter-spacing:2px;padding:8px 4px;cursor:pointer;text-transform:uppercase;transition:all .2s;margin-bottom:-1px;}
-.auth-tab.active{color:var(--red);border-bottom-color:var(--red);}
+.auth-tab{flex:1;background:none;border:none;border-bottom:2px solid transparent;color:var(--muted);font-family:'Orbitron',monospace;font-size:11px;font-weight:700;letter-spacing:2px;padding:8px 4px;cursor:pointer;text-transform:uppercase;transition:all .25s;margin-bottom:-1px;}
+.auth-tab.active{color:var(--red);border-bottom-color:var(--red);text-shadow:0 0 20px var(--red-glow);}
 .auth-form{display:none;}.auth-form.active{display:block;}
-.auth-lbl{font-size:10px;letter-spacing:2px;color:var(--muted);text-transform:uppercase;margin:12px 0 5px;}
+.auth-lbl{font-size:10px;letter-spacing:2px;color:var(--muted-hi);text-transform:uppercase;margin:12px 0 5px;}
 .auth-lbl:first-child{margin-top:0;}
-.auth-input{width:100%;background:var(--bg2);border:1px solid var(--border);border-radius:3px;color:var(--text);font-family:'Rajdhani',sans-serif;font-size:15px;padding:10px 12px;transition:border-color .2s;}
-.auth-input:focus{outline:none;border-color:var(--red);}
+.auth-input{width:100%;background:rgba(12,12,22,0.8);border:1px solid var(--border);border-radius:6px;color:var(--text);font-family:'Rajdhani',sans-serif;font-size:15px;padding:11px 14px;transition:border-color .2s,box-shadow .2s;}
+.auth-input:focus{outline:none;border-color:rgba(232,0,45,0.6);box-shadow:0 0 0 3px rgba(232,0,45,0.08);}
 .auth-input::placeholder{color:var(--muted);}
 .emoji-pick{display:grid;grid-template-columns:repeat(5,1fr);gap:5px;margin-top:4px;max-height:200px;overflow-y:auto;}
 
 .auth-err{font-size:12px;color:var(--red);min-height:16px;margin-top:8px;text-align:center;}
-.auth-btn{width:100%;background:var(--red);color:#fff;border:none;border-radius:3px;font-family:'Orbitron',monospace;font-size:12px;font-weight:700;letter-spacing:3px;padding:13px;cursor:pointer;transition:all .2s;margin-top:14px;}
-.auth-btn:hover{box-shadow:0 0 30px rgba(232,0,45,0.4);}
-.auth-btn:disabled{opacity:.5;cursor:not-allowed;}
+.auth-btn{width:100%;background:linear-gradient(135deg,#E8002D,#c4001f);color:#fff;border:none;border-radius:7px;font-family:'Orbitron',monospace;font-size:12px;font-weight:700;letter-spacing:3px;padding:14px;cursor:pointer;transition:all .25s;margin-top:14px;box-shadow:0 4px 20px rgba(232,0,45,0.35);}
+.auth-btn:hover{transform:translateY(-1px);box-shadow:0 8px 40px rgba(232,0,45,0.5);}
+.auth-btn:active{transform:translateY(0);box-shadow:0 2px 12px rgba(232,0,45,0.3);}
+.auth-btn:disabled{opacity:.4;cursor:not-allowed;transform:none;}
 
 /* ══ HEADER ══ */
-header{position:sticky;top:0;z-index:100;background:rgba(5,5,8,.96);border-bottom:1px solid var(--red);backdrop-filter:blur(20px);}
-.hdr{max-width:480px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;height:54px;padding:0 18px;}
-.logo{font-family:'Orbitron',monospace;font-weight:900;font-size:17px;letter-spacing:4px;color:var(--red);text-shadow:0 0 20px rgba(232,0,45,.6);}
+header{position:sticky;top:0;z-index:100;background:rgba(6,6,12,0.92);border-bottom:1px solid rgba(232,0,45,0.5);backdrop-filter:blur(24px);box-shadow:0 1px 0 rgba(232,0,45,0.12),0 4px 32px rgba(0,0,0,0.4);}
+.hdr{max-width:480px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;height:56px;padding:0 18px;}
+.logo{font-family:'Orbitron',monospace;font-weight:900;font-size:17px;letter-spacing:4px;color:var(--red);text-shadow:0 0 30px var(--red-glow);}
 .logo span{color:var(--text);}
 .hdr-r{display:flex;align-items:center;gap:10px;}
-.score-pts{font-family:'Orbitron',monospace;font-size:20px;font-weight:700;color:var(--gold);text-align:right;}
-.score-lbl{font-size:9px;color:var(--muted);letter-spacing:2px;text-align:right;}
-.logout-btn{background:none;border:1px solid rgba(255,255,255,.1);border-radius:3px;color:var(--muted);font-size:13px;padding:5px 9px;cursor:pointer;transition:all .2s;}
-.logout-btn:hover{border-color:var(--red);color:var(--red);}
+.score-pts{font-family:'Orbitron',monospace;font-size:20px;font-weight:700;color:var(--gold);text-align:right;text-shadow:0 0 20px var(--gold-glow);}
+.score-lbl{font-size:9px;color:var(--muted-hi);letter-spacing:2px;text-align:right;text-transform:uppercase;font-family:'Orbitron',monospace;}
+.logout-btn{background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,.09);border-radius:6px;color:var(--muted-hi);font-size:13px;padding:5px 10px;cursor:pointer;transition:all .2s;backdrop-filter:blur(8px);}
+.logout-btn:hover{border-color:rgba(232,0,45,0.5);color:var(--red);background:rgba(232,0,45,0.06);}
 
 /* ══ RACE BANNER ══ */
 .race-banner{border-bottom:1px solid var(--border);}
-.race-inner{max-width:480px;margin:0 auto;padding:9px 18px;background:linear-gradient(135deg,rgba(232,0,45,.1),transparent);}
-.race-name{font-family:'Orbitron',monospace;font-size:11px;letter-spacing:3px;color:var(--red);}
-.race-det{font-size:11px;color:var(--muted);margin-top:1px;}
+.race-inner{max-width:480px;margin:0 auto;padding:10px 18px;background:linear-gradient(135deg,rgba(232,0,45,.08) 0%,rgba(232,0,45,.02) 60%,transparent 100%);}
+.race-name{font-family:'Orbitron',monospace;font-size:11px;letter-spacing:3px;color:var(--red);text-shadow:0 0 12px var(--red-glow);}
+.race-det{font-size:11px;color:var(--muted-hi);margin-top:1px;}
 .race-meta{display:flex;gap:7px;margin-top:6px;flex-wrap:wrap;align-items:center;}
-.rbadge{background:rgba(255,255,255,.05);border:1px solid var(--border);padding:2px 9px;font-size:10px;letter-spacing:1px;color:var(--cyan);border-radius:2px;}
+.rbadge{background:rgba(24,200,255,.06);border:1px solid rgba(24,200,255,.18);padding:2px 10px;font-size:10px;letter-spacing:1px;color:var(--cyan);border-radius:4px;}
 .fb-dot{display:inline-flex;align-items:center;gap:4px;font-size:10px;color:var(--green);font-family:'Orbitron',monospace;letter-spacing:1px;}
-.fb-dot::before{content:'';width:5px;height:5px;border-radius:50%;background:var(--green);animation:pulse 2s infinite;}
+.fb-dot::before{content:'';width:5px;height:5px;border-radius:50%;background:var(--green);box-shadow:0 0 6px var(--green);animation:pulse 2s infinite;}
 
 /* ══ CHRONO ══ */
 .chrono-wrap{border-bottom:1px solid var(--border);}
 .chrono-inner{max-width:480px;margin:0 auto;padding:10px 0 4px;}
 /* Bloc principal (prochain événement) */
 .ch-main{display:flex;flex-direction:column;align-items:center;padding:8px 18px 6px;gap:2px;text-align:center;}
-.ch-main.gp{background:rgba(232,0,45,.06);}
-.ch-main.quali{background:rgba(0,212,255,.04);}
-.ch-main.fp{background:rgba(255,255,255,.02);}
-.ch-main.bets{background:rgba(255,195,0,.05);}
-.ch-main.done{background:rgba(0,255,135,.04);}
-.ch-main.racing{background:rgba(232,0,45,.08);animation:rPulse 2s infinite;}
-.ch-lbl{font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);}
+.ch-main.gp{background:linear-gradient(180deg,rgba(232,0,45,.07),transparent);}
+.ch-main.quali{background:linear-gradient(180deg,rgba(24,200,255,.05),transparent);}
+.ch-main.fp{background:rgba(255,255,255,.015);}
+.ch-main.bets{background:linear-gradient(180deg,rgba(245,200,66,.05),transparent);}
+.ch-main.done{background:linear-gradient(180deg,rgba(0,232,122,.04),transparent);}
+.ch-main.racing{background:linear-gradient(180deg,rgba(232,0,45,.1),transparent);animation:rPulse 2s infinite;}
+.ch-lbl{font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--muted-hi);}
 /* Valeurs countdown — taille selon importance */
 .ch-val-gp{font-family:'Orbitron',monospace;font-size:26px;font-weight:900;letter-spacing:4px;line-height:1;color:var(--cyan);}
 .ch-val-gp.live{color:var(--red);}
@@ -103,18 +140,18 @@ header{position:sticky;top:0;z-index:100;background:rgba(5,5,8,.96);border-botto
 
 
 /* ══ Paris Saison ══ */
-.saison-status-bar{padding:10px 14px;margin-bottom:2px;border-left:3px solid var(--border);font-size:11px;display:flex;justify-content:space-between;align-items:center;gap:8px;}
-.saison-status-bar.open{border-color:var(--green);background:rgba(0,255,135,.04);}
-.saison-status-bar.closed{border-color:var(--red);background:rgba(232,0,45,.04);}
-.saison-status-bar.waiting{border-color:var(--gold);background:rgba(255,215,0,.04);}
+.saison-status-bar{padding:10px 14px;margin-bottom:2px;border-left:3px solid var(--border);font-size:11px;display:flex;justify-content:space-between;align-items:center;gap:8px;border-radius:0 6px 6px 0;}
+.saison-status-bar.open{border-color:var(--green);background:linear-gradient(90deg,rgba(0,232,122,.06),transparent);}
+.saison-status-bar.closed{border-color:var(--red);background:linear-gradient(90deg,rgba(232,0,45,.06),transparent);}
+.saison-status-bar.waiting{border-color:var(--gold);background:linear-gradient(90deg,rgba(245,200,66,.05),transparent);}
 .saison-status-lbl{font-family:'Orbitron',monospace;font-size:9px;letter-spacing:2px;font-weight:700;}
-.saison-status-cntd{font-family:'Orbitron',monospace;font-size:13px;font-weight:900;color:var(--gold);}
+.saison-status-cntd{font-family:'Orbitron',monospace;font-size:13px;font-weight:900;color:var(--gold);text-shadow:0 0 12px var(--gold-glow);}
 
 /* ══ Statut des paris ══ */
-.bets-status-bar{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;border-radius:6px;margin-bottom:12px;gap:10px;}
-.bets-status-bar.open{background:rgba(0,255,135,.07);border:1px solid rgba(0,255,135,.2);}
+.bets-status-bar{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;border-radius:8px;margin-bottom:12px;gap:10px;}
+.bets-status-bar.open{background:rgba(0,232,122,.06);border:1px solid rgba(0,232,122,.2);box-shadow:0 0 20px rgba(0,232,122,.04) inset;}
 .bets-status-bar.closed{background:rgba(232,0,45,.05);border:1px solid rgba(232,0,45,.2);}
-.bets-status-bar.waiting{background:rgba(255,195,0,.06);border:1px solid rgba(255,195,0,.2);}
+.bets-status-bar.waiting{background:rgba(245,200,66,.05);border:1px solid rgba(245,200,66,.2);}
 .bets-status-lbl{font-size:10px;letter-spacing:2px;text-transform:uppercase;font-weight:700;}
 .bets-status-bar.open    .bets-status-lbl{color:var(--green);}
 .bets-status-bar.closed  .bets-status-lbl{color:var(--red);}
@@ -125,51 +162,51 @@ header{position:sticky;top:0;z-index:100;background:rgba(5,5,8,.96);border-botto
 .bets-status-bar.waiting .bets-status-cntd{color:var(--gold);}
 
 /* ══ Paris des joueurs ══ */
-
 .fb-bet-row{display:flex;justify-content:space-between;align-items:center;padding:4px 0;border-bottom:1px solid rgba(255,255,255,.04);}
 .fb-bet-row:last-child{border-bottom:none;}
-.fb-bet-lbl{font-size:11px;color:var(--muted);}
+.fb-bet-lbl{font-size:11px;color:var(--muted-hi);}
 .fb-bet-val{font-size:11px;font-weight:700;color:var(--text);}
 .fb-locked-box{display:flex;flex-direction:column;align-items:center;padding:20px;gap:8px;text-align:center;}
-.fb-locked-cntd{font-family:'Orbitron',monospace;font-size:22px;font-weight:900;color:var(--gold);letter-spacing:2px;}
+.fb-locked-cntd{font-family:'Orbitron',monospace;font-size:22px;font-weight:900;color:var(--gold);letter-spacing:2px;text-shadow:0 0 20px var(--gold-glow);}
 
 /* ══ Sous-onglets Paris ══ */
-.sub-tabs{display:flex;gap:0;border-bottom:1px solid var(--border);margin:0;background:var(--bg2);}
-.sub-tab{flex:1;background:none;border:none;border-bottom:3px solid transparent;color:var(--muted);font-family:'Rajdhani',sans-serif;font-size:11px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;padding:10px 8px;cursor:pointer;transition:all .2s;text-align:center;}
-.sub-tab.active{color:var(--cyan);border-bottom-color:var(--cyan);}
-.sub-tab.locked{color:var(--muted);opacity:.5;cursor:default;}
+.sub-tabs{display:flex;gap:0;border-bottom:1px solid var(--border);margin:0;background:rgba(12,12,22,0.6);backdrop-filter:blur(8px);}
+.sub-tab{flex:1;background:none;border:none;border-bottom:2px solid transparent;color:var(--muted);font-family:'Rajdhani',sans-serif;font-size:11px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;padding:10px 8px;cursor:pointer;transition:all .2s;text-align:center;}
+.sub-tab.active{color:var(--cyan);border-bottom-color:var(--cyan);text-shadow:0 0 12px var(--cyan-glow);}
+.sub-tab.locked{color:var(--muted);opacity:.4;cursor:default;}
 .sub-tab .lock-icon{font-size:9px;margin-left:4px;vertical-align:middle;}
 .sub-pane{display:none;}.sub-pane.active{display:block;}
 
 /* ══ TABS ══ */
-.tabs{max-width:480px;margin:0 auto;display:flex;padding:9px 14px 0;gap:1px;overflow-x:auto;}
+.tabs{max-width:480px;margin:0 auto;display:flex;padding:8px 14px 0;gap:1px;overflow-x:auto;background:rgba(6,6,12,0.7);backdrop-filter:blur(12px);}
 .tabs::-webkit-scrollbar{display:none;}
-.tab{flex-shrink:0;background:none;border:none;border-bottom:2px solid transparent;color:var(--muted);font-family:'Rajdhani',sans-serif;font-size:10px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;padding:7px 7px;cursor:pointer;transition:all .2s;white-space:nowrap;}
-.tab.active{color:var(--red);border-bottom-color:var(--red);}
+.tab{flex-shrink:0;background:none;border:none;border-bottom:2px solid transparent;color:var(--muted);font-family:'Rajdhani',sans-serif;font-size:10px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;padding:7px 8px;cursor:pointer;transition:all .22s;white-space:nowrap;}
+.tab.active{color:var(--red);border-bottom-color:var(--red);text-shadow:0 0 10px var(--red-glow);}
+.tab:hover:not(.active){color:var(--muted-hi);}
 .content{max-width:480px;margin:0 auto;padding:14px 18px 100px;}
 .section{display:none;}.section.active{display:block;}
 
 /* ══ GENERAL COMPONENTS ══ */
-.bloc-title{font-family:'Orbitron',monospace;font-size:10px;letter-spacing:3px;color:var(--muted);text-transform:uppercase;margin:18px 0 10px;padding-left:10px;border-left:2px solid var(--red);}
-.card{background:var(--bg3);border:1px solid var(--border);border-radius:10px;margin-bottom:10px;overflow:hidden;}
+.bloc-title{font-family:'Orbitron',monospace;font-size:10px;letter-spacing:3px;color:var(--muted-hi);text-transform:uppercase;margin:18px 0 10px;padding-left:10px;border-left:2px solid var(--red);border-radius:0;}
+.card{background:linear-gradient(160deg,var(--bg3) 0%,rgba(19,19,31,0.95) 100%);border:1px solid var(--border);border-radius:12px;margin-bottom:10px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,0.3);}
 .card-hdr{display:flex;align-items:center;justify-content:space-between;padding:12px 14px;background:rgba(255,255,255,.02);border-bottom:1px solid var(--border);flex-wrap:wrap;gap:6px;}
-.bloc-reset-btn{background:none;border:1px solid rgba(232,0,45,.3);color:rgba(232,0,45,.6);border-radius:4px;padding:2px 8px;font-size:11px;cursor:pointer;}
-.bloc-reset-btn:hover{background:rgba(232,0,45,.1);color:var(--red);}
+.bloc-reset-btn{background:none;border:1px solid rgba(232,0,45,.25);color:rgba(232,0,45,.55);border-radius:5px;padding:2px 8px;font-size:11px;cursor:pointer;transition:all .18s;}
+.bloc-reset-btn:hover{background:rgba(232,0,45,.08);color:var(--red);border-color:rgba(232,0,45,.5);}
 .card-title{font-size:14px;font-weight:700;letter-spacing:1px;}
 .card-body{padding:14px;}
-.badge{font-family:'Orbitron',monospace;font-size:10px;font-weight:700;padding:3px 8px;border-radius:2px;}
-.badge.gold{background:rgba(255,215,0,.15);color:var(--gold);border:1px solid rgba(255,215,0,.3);}
-.badge.cyan{background:rgba(0,212,255,.1);color:var(--cyan);border:1px solid rgba(0,212,255,.3);}
-.badge.green{background:rgba(0,255,135,.1);color:var(--green);border:1px solid rgba(0,255,135,.3);}
-.badge.purple{background:rgba(180,100,255,.12);color:#c084fc;border:1px solid rgba(180,100,255,.3);}
+.badge{font-family:'Orbitron',monospace;font-size:10px;font-weight:700;padding:3px 8px;border-radius:4px;}
+.badge.gold{background:rgba(245,200,66,.12);color:var(--gold);border:1px solid rgba(245,200,66,.28);}
+.badge.cyan{background:rgba(24,200,255,.09);color:var(--cyan);border:1px solid rgba(24,200,255,.28);}
+.badge.green{background:rgba(0,232,122,.09);color:var(--green);border:1px solid rgba(0,232,122,.28);}
+.badge.purple{background:rgba(168,85,247,.1);color:#c084fc;border:1px solid rgba(168,85,247,.28);}
 .loader{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px;gap:12px;}
-.spinner{width:32px;height:32px;border:2px solid var(--border);border-top-color:var(--red);border-radius:50%;animation:spin .8s linear infinite;}
+.spinner{width:32px;height:32px;border:2px solid var(--border);border-top-color:var(--red);border-radius:50%;animation:spin .8s linear infinite;box-shadow:0 0 12px var(--red-glow);}
 @keyframes spin{to{transform:rotate(360deg)}}
-.loader-txt{font-size:11px;letter-spacing:3px;color:var(--muted);text-transform:uppercase;text-align:center;}
+.loader-txt{font-size:11px;letter-spacing:3px;color:var(--muted-hi);text-transform:uppercase;text-align:center;}
 @keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.4;transform:scale(.8)}}
 
 /* ══ PARIS ══ */
-.api-status{display:flex;align-items:center;gap:8px;padding:8px 14px;background:rgba(0,255,135,.05);border:1px solid rgba(0,255,135,.1);border-radius:3px;font-size:11px;color:var(--green);margin-bottom:14px;flex-wrap:wrap;}
+.api-status{display:flex;align-items:center;gap:8px;padding:8px 14px;background:rgba(0,232,122,.04);border:1px solid rgba(0,232,122,.12);border-radius:6px;font-size:11px;color:var(--green);margin-bottom:14px;flex-wrap:wrap;}
 .live-dot{display:inline-flex;align-items:center;gap:5px;font-size:10px;color:var(--red);letter-spacing:2px;font-family:'Orbitron',monospace;flex-shrink:0;}
 .live-dot::before{content:'';width:6px;height:6px;border-radius:50%;background:var(--red);animation:pulse 1.2s infinite;}
 .podium-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:10px;}
@@ -188,33 +225,33 @@ header{position:sticky;top:0;z-index:100;background:rgba(5,5,8,.96);border-botto
 .perf-item:last-child{border-bottom:none;}
 
 /* ── Nouveau UI Paris ── */
-.pb-bloc{background:var(--bg3);border:1px solid var(--border);border-radius:10px;margin-bottom:10px;overflow:hidden;transition:border-color .2s;}
-.pb-bloc.pb-open{border-color:rgba(255,255,255,.1);}
-.pb-bloc.pb-closed{opacity:.6;}
-.pb-hdr{display:flex;align-items:center;justify-content:space-between;padding:12px 14px;background:rgba(255,255,255,.02);border-bottom:1px solid var(--border);}
+.pb-bloc{background:linear-gradient(160deg,var(--bg3),rgba(13,13,20,0.97));border:1px solid var(--border);border-radius:12px;margin-bottom:10px;overflow:hidden;transition:border-color .2s,box-shadow .2s;box-shadow:0 2px 16px rgba(0,0,0,0.25);}
+.pb-bloc.pb-open{border-color:rgba(255,255,255,.11);box-shadow:0 4px 20px rgba(0,0,0,0.3);}
+.pb-bloc.pb-closed{opacity:.55;}
+.pb-hdr{display:flex;align-items:center;justify-content:space-between;padding:12px 14px;background:rgba(255,255,255,.015);border-bottom:1px solid var(--border);}
 .pb-hdr-left{display:flex;align-items:center;gap:10px;}
 .pb-icon{font-size:18px;flex-shrink:0;}
-.pb-title{font-family:'Orbitron',monospace;font-size:10px;font-weight:700;letter-spacing:2px;color:var(--text);}
-.pb-sub{font-size:11px;color:var(--muted);margin-top:2px;}
-.pb-badge{font-family:'Orbitron',monospace;font-size:9px;font-weight:700;padding:3px 7px;border-radius:3px;white-space:nowrap;}
-.pb-badge-purple{background:rgba(180,100,255,.12);color:#c084fc;border:1px solid rgba(180,100,255,.25);}
-.pb-badge-gold{background:rgba(255,215,0,.1);color:var(--gold);border:1px solid rgba(255,215,0,.25);}
-.pb-badge-cyan{background:rgba(0,212,255,.1);color:var(--cyan);border:1px solid rgba(0,212,255,.2);}
-.pb-badge-orange{background:rgba(251,146,60,.1);color:#fb923c;border:1px solid rgba(251,146,60,.25);}
-.pb-badge-red{background:rgba(232,0,45,.1);color:var(--red);border:1px solid rgba(232,0,45,.25);}
+.pb-title{font-family:'Orbitron',monospace;font-size:11px;font-weight:700;letter-spacing:2px;color:var(--text);}
+.pb-sub{font-size:11px;color:var(--muted-hi);margin-top:3px;font-family:'Rajdhani',sans-serif;font-weight:600;}
+.pb-badge{font-family:'Orbitron',monospace;font-size:9px;font-weight:700;padding:3px 7px;border-radius:4px;white-space:nowrap;}
+.pb-badge-purple{background:rgba(168,85,247,.1);color:#c084fc;border:1px solid rgba(168,85,247,.22);}
+.pb-badge-gold{background:rgba(245,200,66,.08);color:var(--gold);border:1px solid rgba(245,200,66,.22);}
+.pb-badge-cyan{background:rgba(24,200,255,.08);color:var(--cyan);border:1px solid rgba(24,200,255,.18);}
+.pb-badge-orange{background:rgba(251,146,60,.08);color:#fb923c;border:1px solid rgba(251,146,60,.22);}
+.pb-badge-red{background:rgba(232,0,45,.08);color:var(--red);border:1px solid rgba(232,0,45,.22);}
 .pb-lock{font-size:12px;color:var(--muted);}
-.pb-reset{background:none;border:1px solid rgba(255,255,255,.1);color:var(--muted);border-radius:4px;padding:3px 6px;cursor:pointer;font-size:12px;transition:all .15s;}
-.pb-reset:hover{border-color:var(--red);color:var(--red);}
+.pb-reset{background:rgba(255,255,255,.02);border:1px solid rgba(255,255,255,.09);color:var(--muted);border-radius:5px;padding:3px 6px;cursor:pointer;font-size:12px;transition:all .15s;}
+.pb-reset:hover{border-color:rgba(232,0,45,.4);color:var(--red);}
 .pb-body{padding:12px 14px;}
 /* Picks row (pole/last) */
 .pb-picks-row{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
 .pb-pick-slot{}
-.pb-pick-lbl{font-size:10px;color:var(--muted);font-weight:600;letter-spacing:1px;margin-bottom:6px;}
+.pb-pick-lbl{font-size:11px;color:var(--muted-hi);font-weight:600;letter-spacing:.5px;margin-bottom:6px;font-family:'Rajdhani',sans-serif;display:flex;align-items:center;}
 /* Pick card générique */
-.pb-pick-card{background:var(--bg2);border:1.5px solid var(--border);border-radius:8px;min-height:60px;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:8px;transition:all .15s;position:relative;overflow:hidden;-webkit-tap-highlight-color:transparent;}
-.pb-pick-card:hover{border-color:rgba(255,255,255,.2);background:rgba(255,255,255,.03);}
+.pb-pick-card{background:var(--bg2);border:1.5px solid var(--border);border-radius:9px;min-height:60px;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:8px;transition:all .18s;position:relative;overflow:hidden;-webkit-tap-highlight-color:transparent;}
+.pb-pick-card:hover{border-color:rgba(255,255,255,.18);background:rgba(255,255,255,.025);}
 .pb-pick-card.pb-filled{border-color:var(--pc-color,var(--border));background:var(--pc-bg,var(--bg2));}
-.pb-pick-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:var(--pc-color,transparent);opacity:0;transition:opacity .15s;}
+.pb-pick-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:var(--pc-color,transparent);opacity:0;transition:opacity .18s;}
 .pb-pick-card.pb-filled::before{opacity:1;}
 /* Contenu carte remplie */
 .pb-card-inner{display:flex;align-items:center;gap:8px;width:100%;}
@@ -222,7 +259,7 @@ header{position:sticky;top:0;z-index:100;background:rgba(5,5,8,.96);border-botto
 .pb-card-abbr{font-family:'Barlow Condensed',sans-serif;font-size:16px;font-weight:700;letter-spacing:1px;}
 .pb-card-info{flex:1;min-width:0;}
 .pb-card-name{font-size:11px;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.pb-card-num{font-family:'Orbitron',monospace;font-size:9px;color:var(--muted);}
+.pb-card-num{font-family:'Orbitron',monospace;font-size:9px;color:var(--muted-hi);}
 .pb-card-clear{background:none;border:none;color:var(--muted);cursor:pointer;font-size:13px;padding:2px 4px;flex-shrink:0;border-radius:3px;}
 .pb-card-clear:hover{color:var(--red);}
 /* Contenu carte vide */
@@ -232,15 +269,15 @@ header{position:sticky;top:0;z-index:100;background:rgba(5,5,8,.96);border-botto
 .pb-podium-slot{}
 .pb-podium-rank{font-family:'Orbitron',monospace;font-size:9px;font-weight:700;margin-bottom:6px;letter-spacing:1px;}
 .pb-podium-rank.gold{color:var(--gold);}
-.pb-podium-rank.silver{color:#C0C0C0;}
-.pb-podium-rank.bronze{color:#CD7F32;}
-.pb-podium-card{background:var(--bg2);border:1.5px solid var(--border);border-radius:8px;min-height:72px;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;transition:all .15s;position:relative;overflow:hidden;-webkit-tap-highlight-color:transparent;}
-.pb-podium-card:hover{border-color:rgba(255,255,255,.2);}
+.pb-podium-rank.silver{color:var(--silver);}
+.pb-podium-rank.bronze{color:var(--bronze);}
+.pb-podium-card{background:var(--bg2);border:1.5px solid var(--border);border-radius:9px;min-height:72px;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;transition:all .18s;position:relative;overflow:hidden;-webkit-tap-highlight-color:transparent;}
+.pb-podium-card:hover{border-color:rgba(255,255,255,.18);}
 .pb-podium-card.pb-filled{border-color:var(--pc-color);background:var(--pc-bg);}
 .pb-podium-card::after{content:'';position:absolute;bottom:0;left:0;right:0;height:2px;background:var(--pc-color,transparent);opacity:0;}
 .pb-podium-card.pb-filled::after{opacity:1;}
 .pb-pod-abbr{font-family:'Barlow Condensed',sans-serif;font-size:17px;font-weight:700;letter-spacing:1px;}
-.pb-pod-num{font-family:'Orbitron',monospace;font-size:9px;color:var(--muted);}
+.pb-pod-num{font-family:'Orbitron',monospace;font-size:9px;color:var(--muted-hi);}
 .pb-pod-clear{position:absolute;top:3px;right:4px;background:none;border:none;color:var(--muted);cursor:pointer;font-size:11px;padding:2px;border-radius:3px;}
 .pb-pod-clear:hover{color:var(--red);}
 .pb-pod-empty{font-size:11px;color:var(--muted);}
@@ -251,7 +288,7 @@ header{position:sticky;top:0;z-index:100;background:rgba(5,5,8,.96);border-botto
 /* Top 4-10 */
 .pb-t410-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:5px;}
 .pb-t410-slot{text-align:center;}
-.pb-t410-rank{font-family:'Orbitron',monospace;font-size:8px;color:var(--muted);margin-bottom:4px;}
+.pb-t410-rank{font-family:'Orbitron',monospace;font-size:9px;font-weight:700;color:var(--muted-hi);margin-bottom:4px;letter-spacing:1px;}
 .pb-t410-card{min-height:56px !important;padding:6px 3px !important;flex-direction:column;gap:2px;}
 .pb-t410-abbr{font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:700;}
 .pb-t410-num{font-family:'Orbitron',monospace;font-size:8px;color:var(--muted);}
@@ -266,34 +303,35 @@ header{position:sticky;top:0;z-index:100;background:rgba(5,5,8,.96);border-botto
 .pb-perf-desc{font-size:11px;color:var(--muted);margin-top:1px;}
 .pb-perf-val{text-align:right;flex-shrink:0;}
 /* Modal bottom sheet */
-.pb-modal{position:fixed;inset:0;z-index:600;background:rgba(0,0,0,.75);backdrop-filter:blur(4px);display:none;align-items:flex-end;justify-content:center;}
+.pb-modal{position:fixed;inset:0;z-index:600;background:rgba(0,0,0,.8);backdrop-filter:blur(12px);display:none;align-items:flex-end;justify-content:center;}
 .pb-modal.open{display:flex;}
-.pb-sheet{background:var(--bg2);border-radius:16px 16px 0 0;border:1px solid var(--border);border-bottom:none;width:100%;max-height:88vh;display:flex;flex-direction:column;animation:pbSlideUp .2s ease;}
-@keyframes pbSlideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
+.pb-sheet{background:linear-gradient(180deg,var(--bg3) 0%,var(--bg2) 100%);border-radius:18px 18px 0 0;border:1px solid var(--border-hi);border-bottom:none;width:100%;max-height:88vh;display:flex;flex-direction:column;animation:pbSlideUp .22s cubic-bezier(0.22,1,0.36,1);box-shadow:0 -16px 60px rgba(0,0,0,0.6);}
+@keyframes pbSlideUp{from{transform:translateY(100%);opacity:0}to{transform:translateY(0);opacity:1}}
 .pb-sheet-hdr{padding:14px 16px 10px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;flex-shrink:0;}
 .pb-sheet-title{font-family:'Orbitron',monospace;font-size:11px;font-weight:700;letter-spacing:2px;flex:1;color:var(--text);}
-.pb-sheet-close{background:rgba(255,255,255,.08);border:1px solid var(--border);color:var(--text);font-size:14px;cursor:pointer;padding:5px 10px;border-radius:6px;}
-.pb-sheet-search{margin:10px 14px 6px;background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:9px 12px;color:var(--text);font-family:'Rajdhani',sans-serif;font-size:14px;outline:none;box-sizing:border-box;width:calc(100% - 28px);flex-shrink:0;}
-.pb-sheet-search:focus{border-color:var(--cyan);}
+.pb-sheet-close{background:rgba(255,255,255,.06);border:1px solid var(--border-hi);color:var(--text);font-size:14px;cursor:pointer;padding:5px 10px;border-radius:7px;transition:all .15s;}
+.pb-sheet-close:hover{background:rgba(255,255,255,.1);}
+.pb-sheet-search{margin:10px 14px 6px;background:rgba(12,12,22,0.8);border:1px solid var(--border);border-radius:9px;padding:10px 12px;color:var(--text);font-family:'Rajdhani',sans-serif;font-size:14px;outline:none;box-sizing:border-box;width:calc(100% - 28px);flex-shrink:0;transition:border-color .2s;}
+.pb-sheet-search:focus{border-color:rgba(24,200,255,.4);box-shadow:0 0 0 3px rgba(24,200,255,.06);}
 .pb-sheet-list{overflow-y:auto;padding:4px 10px 24px;flex:1;}
 .pb-team-lbl{font-size:10px;font-weight:700;letter-spacing:2px;padding:10px 4px 4px;text-transform:uppercase;font-family:'Barlow Condensed',sans-serif;display:flex;align-items:center;gap:6px;}
 .pb-team-lbl::before{content:'';width:16px;height:2px;border-radius:1px;}
-.pb-drv-row{display:flex;align-items:center;gap:12px;padding:9px 10px;border-radius:8px;cursor:pointer;transition:background .1s;-webkit-tap-highlight-color:transparent;}
-.pb-drv-row:hover,.pb-drv-row:active{background:var(--bg3);}
-.pb-drv-row.pb-drv-taken{opacity:.3;pointer-events:none;}
+.pb-drv-row{display:flex;align-items:center;gap:12px;padding:9px 10px;border-radius:9px;cursor:pointer;transition:background .12s;-webkit-tap-highlight-color:transparent;}
+.pb-drv-row:hover,.pb-drv-row:active{background:rgba(255,255,255,.04);}
+.pb-drv-row.pb-drv-taken{opacity:.25;pointer-events:none;}
 .pb-drv-row.pb-drv-current{background:rgba(255,255,255,.05);}
 .pb-drv-helmet{width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:'Orbitron',monospace;font-size:11px;font-weight:900;flex-shrink:0;color:#000;}
 .pb-drv-info{flex:1;}
 .pb-drv-name{font-size:14px;font-weight:600;color:var(--text);}
-.pb-drv-meta{font-family:'Orbitron',monospace;font-size:9px;color:var(--muted);margin-top:1px;}
+.pb-drv-meta{font-family:'Orbitron',monospace;font-size:9px;color:var(--muted-hi);margin-top:1px;}
 .pb-drv-check{font-size:16px;}
-@media(min-width:600px){.pb-modal{align-items:center;}.pb-sheet{border-radius:16px;max-width:460px;border:1px solid var(--border);max-height:80vh;}}
+@media(min-width:600px){.pb-modal{align-items:center;}.pb-sheet{border-radius:16px;max-width:460px;border:1px solid var(--border-hi);max-height:80vh;}}
 @media(min-width:640px){.pb-t410-grid{gap:8px;}.pb-t410-card{min-height:64px !important;}}
-.perf-icon{width:32px;height:32px;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;}
+.perf-icon{width:32px;height:32px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;}
 .perf-info{flex:1;min-width:0;}
 .perf-name{font-size:13px;font-weight:700;}
-.perf-desc{font-size:11px;color:var(--muted);margin-top:1px;}
-.perf-sel{background:var(--bg2);border:1px solid var(--border);border-radius:3px;color:var(--text);font-family:'Rajdhani',sans-serif;font-size:12px;font-weight:600;padding:6px 8px;cursor:pointer;min-width:100px;max-width:130px;appearance:none;}
+.perf-desc{font-size:11px;color:var(--muted-hi);margin-top:1px;}
+.perf-sel{background:var(--bg2);border:1px solid var(--border);border-radius:5px;color:var(--text);font-family:'Rajdhani',sans-serif;font-size:12px;font-weight:600;padding:6px 8px;cursor:pointer;min-width:100px;max-width:130px;appearance:none;}
 .perf-sel option{background:#111;}
 .ev-item{display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border);}
 .ev-item:last-child{border-bottom:none;}
@@ -310,55 +348,59 @@ header{position:sticky;top:0;z-index:100;background:rgba(5,5,8,.96);border-botto
 .toggle input:checked~.tgl-thumb{left:29px;background:var(--green);}
 
 /* ══ LEADERBOARD ══ */
-.lb-item{display:flex;align-items:center;gap:12px;padding:13px 16px;background:var(--bg3);border:1px solid var(--border);border-radius:10px;margin-bottom:8px;transition:border-color .2s;}
-.lb-item.me{border-color:rgba(232,0,45,.5);background:rgba(232,0,45,.04);}
-.lb-item.r1-item{border-color:rgba(255,215,0,.3);background:rgba(255,215,0,.03);}
+.lb-item{display:flex;align-items:center;gap:12px;padding:13px 16px;background:linear-gradient(135deg,var(--bg3),rgba(19,19,31,0.9));border:1px solid var(--border);border-radius:12px;margin-bottom:8px;transition:border-color .2s,box-shadow .2s;box-shadow:0 2px 12px rgba(0,0,0,0.2);}
+.lb-item:hover{border-color:var(--border-hi);box-shadow:0 4px 20px rgba(0,0,0,0.3);}
+.lb-item.me{border-color:rgba(232,0,45,.45);background:linear-gradient(135deg,rgba(232,0,45,.05),rgba(19,19,31,0.95));box-shadow:0 0 20px rgba(232,0,45,.08);}
+.lb-item.r1-item{border-color:rgba(245,200,66,.3);background:linear-gradient(135deg,rgba(245,200,66,.04),rgba(19,19,31,0.95));box-shadow:0 0 16px rgba(245,200,66,.06);}
 .lb-rank{font-family:'Orbitron',monospace;font-size:15px;font-weight:900;width:26px;text-align:center;color:var(--muted);flex-shrink:0;}
-.lb-rank.r1{color:var(--gold);}.lb-rank.r2{color:var(--silver);}.lb-rank.r3{color:var(--bronze);}
-.lb-av{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;overflow:hidden;background:var(--bg2);}
+.lb-rank.r1{color:var(--gold);text-shadow:0 0 12px var(--gold-glow);}
+.lb-rank.r2{color:var(--silver);}.lb-rank.r3{color:var(--bronze);}
+.lb-av{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;overflow:hidden;background:var(--bg2);border:1px solid var(--border);}
 .lb-info{flex:1;min-width:0;}
 .lb-name{font-size:15px;font-weight:700;}
-.lb-sub{font-size:10px;color:var(--muted);margin-top:2px;display:flex;align-items:center;gap:5px;flex-wrap:wrap;}
-.lb-pts{font-family:'Orbitron',monospace;font-size:20px;font-weight:900;color:var(--gold);flex-shrink:0;}
-.lb-bar-wrap{height:3px;background:rgba(255,255,255,.06);border-radius:2px;margin-top:5px;}
-.lb-bar{height:3px;border-radius:2px;transition:width .8s ease;}
+.lb-sub{font-size:10px;color:var(--muted-hi);margin-top:2px;display:flex;align-items:center;gap:5px;flex-wrap:wrap;}
+.lb-pts{font-family:'Orbitron',monospace;font-size:20px;font-weight:900;color:var(--gold);flex-shrink:0;text-shadow:0 0 16px var(--gold-glow);}
+.lb-bar-wrap{height:2px;background:rgba(255,255,255,.05);border-radius:2px;margin-top:5px;}
+.lb-bar{height:2px;border-radius:2px;transition:width .8s ease;}
 
 /* ══ CIRCUIT ══ */
-.circuit-wrap{position:relative;background:var(--bg3);border:1px solid var(--border);border-radius:4px;overflow:hidden;margin-bottom:12px;}
+.circuit-wrap{position:relative;background:var(--bg3);border:1px solid var(--border);border-radius:10px;overflow:hidden;margin-bottom:12px;}
 .circuit-img{width:100%;display:block;min-height:160px;object-fit:contain;padding:8px;}
 .cir-wrap svg{width:100%;height:auto;max-height:240px;filter:invert(1) sepia(1) saturate(3) hue-rotate(300deg) brightness(.9);}
-.circuit-badge{position:absolute;top:10px;left:10px;background:rgba(5,5,8,.88);border:1px solid var(--red);border-radius:3px;padding:4px 10px;font-family:'Orbitron',monospace;font-size:10px;letter-spacing:2px;color:var(--red);}
-.circuit-no-img{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:140px;gap:10px;padding:20px;color:var(--muted);font-size:12px;letter-spacing:1px;}
+.circuit-badge{position:absolute;top:10px;left:10px;background:rgba(6,6,12,.9);border:1px solid rgba(232,0,45,.5);border-radius:5px;padding:4px 10px;font-family:'Orbitron',monospace;font-size:10px;letter-spacing:2px;color:var(--red);backdrop-filter:blur(8px);}
+.circuit-no-img{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:140px;gap:10px;padding:20px;color:var(--muted-hi);font-size:12px;letter-spacing:1px;}
 .cinfo-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px;}
-.cinfo-cell{background:var(--bg3);border:1px solid var(--border);border-radius:3px;padding:10px 12px;min-height:56px;}
-.cinfo-val{font-family:'Orbitron',monospace;font-size:14px;font-weight:700;color:var(--cyan);}
-.cinfo-lbl{font-size:10px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-top:2px;}
-.cinfo-loading{color:var(--muted);font-size:12px;animation:pulse 1.2s infinite;}
+.cinfo-cell{background:linear-gradient(135deg,var(--bg3),var(--bg2));border:1px solid var(--border);border-radius:8px;padding:10px 12px;min-height:56px;}
+.cinfo-val{font-family:'Orbitron',monospace;font-size:14px;font-weight:700;color:var(--cyan);text-shadow:0 0 10px var(--cyan-glow);}
+.cinfo-lbl{font-size:10px;color:var(--muted-hi);letter-spacing:1px;text-transform:uppercase;margin-top:2px;}
+.cinfo-loading{color:var(--muted-hi);font-size:12px;animation:pulse 1.2s infinite;}
 .cinfo-badge-openf1{font-size:8px;letter-spacing:1px;color:var(--cyan);font-family:'Orbitron',monospace;}
 
 /* STANDINGS 2025 */
-.st25-row{display:flex;align-items:center;gap:10px;padding:8px 12px;background:var(--bg3);border:1px solid var(--border);border-radius:3px;margin-bottom:5px;}
-.st25-row.champion{border-color:rgba(255,215,0,.35);background:rgba(255,215,0,.03);}
+.st25-row{display:flex;align-items:center;gap:10px;padding:8px 12px;background:var(--bg3);border:1px solid var(--border);border-radius:7px;margin-bottom:5px;transition:border-color .15s;}
+.st25-row:hover{border-color:var(--border-hi);}
+.st25-row.champion{border-color:rgba(245,200,66,.3);background:linear-gradient(135deg,rgba(245,200,66,.04),var(--bg3));}
 .st25-pos{font-family:'Orbitron',monospace;font-size:12px;font-weight:700;width:24px;text-align:center;flex-shrink:0;color:var(--muted);}
 .st25-pos.p1{color:var(--gold);}.st25-pos.p2{color:var(--silver);}.st25-pos.p3{color:var(--bronze);}
 .st25-info{flex:1;min-width:0;}
 .st25-name{font-size:14px;font-weight:700;}
-.st25-team{font-size:10px;color:var(--muted);}
+.st25-team{font-size:10px;color:var(--muted-hi);}
 .st25-pts{font-family:'Orbitron',monospace;font-size:14px;font-weight:700;color:var(--gold);flex-shrink:0;}
-.st25-bar-wrap{height:3px;background:rgba(255,255,255,.06);border-radius:2px;margin-top:4px;}
-.st25-bar{height:3px;border-radius:2px;background:var(--gold);transition:width .8s ease;}
+.st25-bar-wrap{height:2px;background:rgba(255,255,255,.05);border-radius:2px;margin-top:4px;}
+.st25-bar{height:2px;border-radius:2px;background:var(--gold);transition:width .8s ease;}
 
 /* ══ CALENDRIER ══ */
-.cal-round{background:var(--bg3);border:1px solid var(--border);border-radius:4px;margin-bottom:8px;overflow:hidden;}
-.cal-round.next{border-color:rgba(232,0,45,.5);background:rgba(232,0,45,.03);}
-.cal-round.done{opacity:.42;}
-.cal-hdr{display:flex;align-items:center;gap:10px;padding:10px 14px;cursor:pointer;user-select:none;}
+.cal-round{background:var(--bg3);border:1px solid var(--border);border-radius:10px;margin-bottom:8px;overflow:hidden;transition:border-color .2s;}
+.cal-round.next{border-color:rgba(232,0,45,.45);background:linear-gradient(135deg,rgba(232,0,45,.04),var(--bg3));}
+.cal-round.done{opacity:.38;}
+.cal-hdr{display:flex;align-items:center;gap:10px;padding:10px 14px;cursor:pointer;user-select:none;transition:background .15s;}
+.cal-hdr:hover{background:rgba(255,255,255,.02);}
 .cal-num{font-family:'Orbitron',monospace;font-size:11px;font-weight:700;color:var(--muted);width:22px;flex-shrink:0;}
 .cal-num.nx{color:var(--red);}
 .cal-flag{font-size:18px;flex-shrink:0;}
 .cal-info{flex:1;min-width:0;}
 .cal-country{font-size:14px;font-weight:700;}
-.cal-circuit{font-size:11px;color:var(--muted);}
+.cal-circuit{font-size:11px;color:var(--muted-hi);}
 .cal-date-col{text-align:right;flex-shrink:0;}
 .cal-date{font-size:12px;font-weight:700;color:var(--cyan);}
 .cal-status{font-size:10px;margin-top:2px;}
@@ -369,61 +411,64 @@ header{position:sticky;top:0;z-index:100;background:rgba(5,5,8,.96);border-botto
 .cs-row:last-child{border-bottom:none;}
 .cs-name{display:flex;align-items:center;gap:6px;}
 .cs-time{font-family:'Orbitron',monospace;font-size:11px;font-weight:700;}
-.sprint-badge{font-size:9px;background:rgba(255,128,0,.15);color:#fb923c;border:1px solid rgba(255,128,0,.3);border-radius:2px;padding:1px 5px;letter-spacing:1px;margin-left:5px;}
+.sprint-badge{font-size:9px;background:rgba(251,146,60,.12);color:#fb923c;border:1px solid rgba(251,146,60,.28);border-radius:4px;padding:1px 5px;letter-spacing:1px;margin-left:5px;}
 
-.gp25-round{background:var(--bg3);border:1px solid var(--border);border-radius:10px;margin-bottom:10px;overflow:hidden;}
-.gp25-round.next{border-color:rgba(232,0,45,.6);background:rgba(232,0,45,.04);}
+.gp25-round{background:var(--bg3);border:1px solid var(--border);border-radius:12px;margin-bottom:10px;overflow:hidden;transition:border-color .2s;}
+.gp25-round.next{border-color:rgba(232,0,45,.55);background:linear-gradient(135deg,rgba(232,0,45,.05),var(--bg3));}
 .gp25-round.next .gp25-num{color:var(--red);}
-.gp25-hdr{display:flex;align-items:center;gap:10px;padding:10px 14px;cursor:pointer;user-select:none;}
-.gp25-hdr:hover{background:rgba(255,255,255,.03);}
+.gp25-hdr{display:flex;align-items:center;gap:10px;padding:10px 14px;cursor:pointer;user-select:none;transition:background .15s;}
+.gp25-hdr:hover{background:rgba(255,255,255,.025);}
 .gp25-num{font-family:'Orbitron',monospace;font-size:11px;font-weight:700;color:var(--muted);width:22px;flex-shrink:0;}
 .gp25-info{flex:1;min-width:0;}
 .gp25-country{font-size:14px;font-weight:700;}
-.gp25-circuit{font-size:11px;color:var(--muted);}
+.gp25-circuit{font-size:11px;color:var(--muted-hi);}
 .gp25-right{text-align:right;flex-shrink:0;}
 .gp25-winner{font-size:11px;font-weight:700;color:var(--gold);}
-.gp25-date{font-size:10px;color:var(--muted);margin-top:2px;}
+.gp25-date{font-size:10px;color:var(--muted-hi);margin-top:2px;}
 .gp25-body{overflow:hidden;max-height:0;transition:max-height .45s ease;}
 .gp25-body.open{max-height:3200px;}
 .gp25-content{border-top:1px solid var(--border);padding:0;}
 
 /* ══ PROFIL ══ */
-.profile-card{background:var(--bg3);border:1px solid var(--border);border-radius:4px;padding:20px;text-align:center;margin-bottom:16px;}
-.av-big{width:80px;height:80px;border-radius:16px;background:transparent;display:flex;align-items:center;justify-content:center;margin:0 auto 14px;position:relative;}
+.profile-card{background:linear-gradient(160deg,var(--bg3) 0%,var(--bg2) 100%);border:1px solid var(--border);border-radius:12px;padding:24px;text-align:center;margin-bottom:16px;box-shadow:0 8px 32px rgba(0,0,0,0.3);}
+.av-big{width:80px;height:80px;border-radius:18px;background:transparent;display:flex;align-items:center;justify-content:center;margin:0 auto 14px;position:relative;}
 .pname{font-family:'Orbitron',monospace;font-size:16px;font-weight:700;margin-bottom:2px;}
-.pemail{font-size:11px;color:var(--muted);}
+.pemail{font-size:11px;color:var(--muted-hi);}
 .stat-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-top:14px;}
-.stat-cell{background:var(--bg2);border:1px solid var(--border);border-radius:3px;padding:10px 6px;text-align:center;}
-.stat-val{font-family:'Orbitron',monospace;font-size:18px;font-weight:700;color:var(--gold);}
-.stat-lbl{font-size:9px;color:var(--muted);letter-spacing:1.5px;text-transform:uppercase;margin-top:2px;}
-.edit-card{background:var(--bg3);border:1px solid rgba(0,212,255,.2);border-radius:4px;padding:16px;margin-bottom:16px;}
+.stat-cell{background:linear-gradient(160deg,var(--bg2),var(--bg));border:1px solid var(--border);border-radius:8px;padding:10px 6px;text-align:center;transition:border-color .2s;}
+.stat-cell:hover{border-color:var(--border-hi);}
+.stat-val{font-family:'Orbitron',monospace;font-size:18px;font-weight:700;color:var(--gold);text-shadow:0 0 12px var(--gold-glow);}
+.stat-lbl{font-size:9px;color:var(--muted-hi);letter-spacing:1.5px;text-transform:uppercase;margin-top:2px;}
+.edit-card{background:var(--bg3);border:1px solid rgba(24,200,255,.18);border-radius:10px;padding:16px;margin-bottom:16px;}
 .edit-title{font-family:'Orbitron',monospace;font-size:10px;letter-spacing:3px;color:var(--cyan);margin-bottom:12px;}
-.edit-input{width:100%;background:var(--bg2);border:1px solid var(--border);border-radius:3px;color:var(--text);font-family:'Rajdhani',sans-serif;font-size:15px;padding:10px 12px;margin-bottom:10px;transition:border-color .2s;}
-.edit-input:focus{outline:none;border-color:var(--cyan);}
+.edit-input{width:100%;background:rgba(12,12,22,0.8);border:1px solid var(--border);border-radius:6px;color:var(--text);font-family:'Rajdhani',sans-serif;font-size:15px;padding:11px 14px;margin-bottom:10px;transition:border-color .2s,box-shadow .2s;}
+.edit-input:focus{outline:none;border-color:rgba(24,200,255,.5);box-shadow:0 0 0 3px rgba(24,200,255,.07);}
 
 .edit-actions{display:flex;gap:8px;}
-.btn-save{flex:1;background:var(--cyan);color:#000;border:none;border-radius:3px;font-family:'Orbitron',monospace;font-size:11px;font-weight:700;letter-spacing:2px;padding:10px;cursor:pointer;}
-.btn-cancel{flex:1;background:none;border:1px solid var(--border);border-radius:3px;color:var(--muted);font-family:'Rajdhani',sans-serif;font-size:13px;font-weight:600;padding:10px;cursor:pointer;}
+.btn-save{flex:1;background:linear-gradient(135deg,var(--cyan),#0ea8d4);color:#000;border:none;border-radius:7px;font-family:'Orbitron',monospace;font-size:11px;font-weight:700;letter-spacing:2px;padding:10px;cursor:pointer;transition:all .2s;box-shadow:0 4px 16px rgba(24,200,255,0.25);}
+.btn-save:hover{transform:translateY(-1px);box-shadow:0 6px 24px rgba(24,200,255,0.35);}
+.btn-cancel{flex:1;background:rgba(255,255,255,.03);border:1px solid var(--border);border-radius:7px;color:var(--muted-hi);font-family:'Rajdhani',sans-serif;font-size:13px;font-weight:600;padding:10px;cursor:pointer;transition:border-color .2s;}
+.btn-cancel:hover{border-color:var(--border-hi);}
 
 /* ══ RESULTS ══ */
-.res-card{background:var(--bg3);border:1px solid var(--border);border-radius:10px;margin-bottom:10px;overflow:hidden;}
+.res-card{background:var(--bg3);border:1px solid var(--border);border-radius:12px;margin-bottom:10px;overflow:hidden;}
 .res-rows{padding:4px 0;}
-.res-row{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:8px 16px;font-size:12px;color:var(--muted);border-bottom:1px solid rgba(255,255,255,.03);}
+.res-row{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:8px 16px;font-size:12px;color:var(--muted-hi);border-bottom:1px solid rgba(255,255,255,.03);}
 .res-row:last-child{border-bottom:none;}
 .res-row.hit{color:var(--text);}
 .res-row.hit .r-pts{color:var(--green);}
 .res-row.miss .r-pts{color:var(--red);}
 .r-pts{font-family:'Orbitron',monospace;font-size:11px;font-weight:700;flex-shrink:0;min-width:36px;text-align:right;}
 .sdot{width:6px;height:6px;border-radius:50%;display:inline-block;margin-right:7px;flex-shrink:0;}
-.sdot.hit{background:var(--green);box-shadow:0 0 6px var(--green);}.sdot.miss{background:var(--red);}.sdot.zero{background:var(--muted);}
+.sdot.hit{background:var(--green);box-shadow:0 0 8px var(--green);}.sdot.miss{background:var(--red);box-shadow:0 0 4px var(--red-glow);}.sdot.zero{background:var(--muted);}
 .locked-box{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:48px 24px;text-align:center;gap:14px;}
-.locked-cntd{font-family:'Orbitron',monospace;font-size:28px;font-weight:900;color:var(--gold);letter-spacing:2px;}
+.locked-cntd{font-family:'Orbitron',monospace;font-size:28px;font-weight:900;color:var(--gold);letter-spacing:2px;text-shadow:0 0 24px var(--gold-glow);}
 
 /* ══ RESULT BLOCKS (multi-section) ══ */
-.rb-block{background:var(--bg3);border:1px solid var(--border);border-radius:6px;overflow:hidden;margin-bottom:10px;}
-.rb-block.rb-has-score{border-color:rgba(0,255,135,.2);}
-.rb-header{display:flex;align-items:center;justify-content:space-between;padding:11px 14px;cursor:pointer;user-select:none;gap:8px;}
-.rb-header:hover{background:rgba(255,255,255,.03);}
+.rb-block{background:linear-gradient(160deg,var(--bg3),var(--bg2));border:1px solid var(--border);border-radius:10px;overflow:hidden;margin-bottom:10px;transition:border-color .2s;}
+.rb-block.rb-has-score{border-color:rgba(0,232,122,.2);box-shadow:0 0 16px rgba(0,232,122,.04);}
+.rb-header{display:flex;align-items:center;justify-content:space-between;padding:11px 14px;cursor:pointer;user-select:none;gap:8px;transition:background .15s;}
+.rb-header:hover{background:rgba(255,255,255,.02);}
 .rb-header-left{display:flex;align-items:center;gap:10px;}
 .rb-icon{font-size:17px;flex-shrink:0;}
 .rb-title{font-family:'Orbitron',monospace;font-size:10px;font-weight:700;letter-spacing:2px;color:var(--text);}
@@ -432,11 +477,11 @@ header{position:sticky;top:0;z-index:100;background:rgba(5,5,8,.96);border-botto
 .rb-score.pos{color:var(--green);}
 .rb-score.neg{color:var(--red);}
 .rb-score.zero{color:var(--muted);}
-.rb-badge{font-family:'Orbitron',monospace;font-size:8px;font-weight:700;letter-spacing:1px;padding:3px 7px;border-radius:2px;white-space:nowrap;}
-.rb-badge.locked{background:rgba(255,255,255,.05);color:var(--muted);border:1px solid var(--border);}
-.rb-badge.pending{background:rgba(255,195,0,.1);color:var(--gold);border:1px solid rgba(255,195,0,.3);}
-.rb-badge.ready{background:rgba(0,255,135,.1);color:var(--green);border:1px solid rgba(0,255,135,.3);}
-.rb-badge.na{background:rgba(255,255,255,.04);color:var(--muted);border:1px solid var(--border);opacity:.45;}
+.rb-badge{font-family:'Orbitron',monospace;font-size:8px;font-weight:700;letter-spacing:1px;padding:3px 7px;border-radius:4px;white-space:nowrap;}
+.rb-badge.locked{background:rgba(255,255,255,.04);color:var(--muted);border:1px solid var(--border);}
+.rb-badge.pending{background:rgba(245,200,66,.08);color:var(--gold);border:1px solid rgba(245,200,66,.25);}
+.rb-badge.ready{background:rgba(0,232,122,.08);color:var(--green);border:1px solid rgba(0,232,122,.25);}
+.rb-badge.na{background:rgba(255,255,255,.03);color:var(--muted);border:1px solid var(--border);opacity:.45;}
 .rb-chevron{font-size:10px;color:var(--muted);transition:transform .25s;flex-shrink:0;}
 .rb-block.open .rb-chevron{transform:rotate(180deg);}
 .rb-body{max-height:0;overflow:hidden;transition:max-height .4s ease;}
@@ -458,48 +503,59 @@ header{position:sticky;top:0;z-index:100;background:rgba(5,5,8,.96);border-botto
 .rb-spinner{width:14px;height:14px;border:2px solid var(--border);border-top-color:var(--cyan);border-radius:50%;animation:spin .7s linear infinite;display:inline-block;flex-shrink:0;}
 
 /* ══ BUTTONS ══ */
-.submit-bar{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:480px;padding:12px 18px;background:rgba(5,5,8,.96);border-top:1px solid var(--border);backdrop-filter:blur(20px);z-index:50;}
-.btn-primary{width:100%;background:var(--red);color:#fff;border:none;border-radius:3px;font-family:'Orbitron',monospace;font-size:12px;font-weight:700;letter-spacing:3px;padding:13px;cursor:pointer;transition:all .2s;}
-.btn-primary:hover{box-shadow:0 0 30px rgba(232,0,45,.5);}
-.btn-primary:disabled{opacity:.5;cursor:not-allowed;}
-.btn-sec{width:100%;background:none;border:1px solid var(--border);border-radius:3px;color:var(--text);font-family:'Rajdhani',sans-serif;font-size:13px;font-weight:600;letter-spacing:2px;padding:11px;cursor:pointer;text-transform:uppercase;transition:all .2s;}
-.btn-sec:hover{border-color:var(--cyan);color:var(--cyan);}
-.btn-danger{width:100%;background:none;border:1px solid rgba(232,0,45,.3);border-radius:3px;color:var(--red);font-family:'Rajdhani',sans-serif;font-size:13px;font-weight:600;letter-spacing:2px;padding:11px;cursor:pointer;text-transform:uppercase;transition:all .2s;margin-top:8px;}
-.btn-danger:hover{background:rgba(232,0,45,.1);border-color:var(--red);}
-.admin-panel{background:rgba(255,215,0,.05);border:1px solid rgba(255,215,0,.2);border-radius:4px;padding:14px;margin-top:16px;}
-.admin-title{font-family:'Orbitron',monospace;font-size:10px;letter-spacing:3px;color:var(--gold);margin-bottom:10px;}
-.admin-input{width:100%;background:var(--bg2);border:1px solid rgba(255,215,0,.2);border-radius:3px;color:var(--text);font-family:'Rajdhani',sans-serif;font-size:14px;padding:8px 12px;margin-bottom:8px;}
-.admin-input:focus{outline:none;border-color:var(--gold);}
-.admin-input::placeholder{color:var(--muted);}
-.admin-btn{width:100%;background:rgba(255,215,0,.15);border:1px solid rgba(255,215,0,.3);border-radius:3px;color:var(--gold);font-family:'Orbitron',monospace;font-size:11px;font-weight:700;letter-spacing:2px;padding:10px;cursor:pointer;}
-.admin-drv-sel{width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:3px;color:var(--text);font-size:10px;padding:4px 3px;}
-.notif{position:fixed;top:68px;left:50%;transform:translateX(-50%);background:var(--bg3);border:1px solid var(--green);border-radius:4px;padding:10px 20px;font-size:13px;font-weight:600;color:var(--green);letter-spacing:1px;z-index:600;opacity:0;transition:opacity .3s;pointer-events:none;white-space:nowrap;}
-.notif.show{opacity:1;}
-::-webkit-scrollbar{width:3px;}::-webkit-scrollbar-thumb{background:var(--red);border-radius:2px;}
+/* ── Submit bar GP (inline dans la page) ── */
+#submitBar{padding-bottom:4px;}
 
-#dbg{max-height:220px;overflow-y:auto;background:rgba(0,0,0,.7);border-radius:4px;border:1px solid rgba(255,215,0,.15);font-family:monospace;font-size:10px;padding:8px 10px;margin-top:10px;}
+/* Bouton standard partagé GP + Saison */
+.btn-primary{width:100%;background:transparent;color:var(--red);border:1px solid rgba(232,0,45,.55);border-radius:8px;font-family:'Orbitron',monospace;font-size:11px;font-weight:700;letter-spacing:3px;padding:11px 14px;cursor:pointer;transition:all .22s;position:relative;overflow:hidden;}
+.btn-primary::after{content:'';position:absolute;inset:0;background:rgba(232,0,45,.06);opacity:0;transition:opacity .22s;}
+.btn-primary:hover{border-color:var(--red);color:#fff;box-shadow:0 0 24px rgba(232,0,45,.2);}
+.btn-primary:hover::after{opacity:1;}
+.btn-primary:active{transform:scale(0.99);}
+.btn-primary:disabled{opacity:.35;cursor:not-allowed;transform:none;box-shadow:none;}
+
+/* Bouton reset discret (haut de pane) */
+.btn-action-reset{width:100%;background:transparent;color:var(--muted-hi);border:1px solid rgba(255,255,255,.09);border-radius:8px;font-family:'Rajdhani',sans-serif;font-size:12px;font-weight:600;letter-spacing:1px;padding:8px 14px;cursor:pointer;transition:all .2s;text-align:left;display:flex;align-items:center;gap:6px;}
+.btn-action-reset:hover{border-color:rgba(232,0,45,.35);color:var(--red);}
+.btn-sec{width:100%;background:rgba(255,255,255,.03);border:1px solid var(--border-hi);border-radius:8px;color:var(--text);font-family:'Rajdhani',sans-serif;font-size:13px;font-weight:600;letter-spacing:2px;padding:11px;cursor:pointer;text-transform:uppercase;transition:all .2s;}
+.btn-sec:hover{border-color:rgba(24,200,255,.4);color:var(--cyan);}
+.btn-danger{width:100%;background:rgba(232,0,45,.04);border:1px solid rgba(232,0,45,.28);border-radius:8px;color:var(--red);font-family:'Rajdhani',sans-serif;font-size:13px;font-weight:600;letter-spacing:2px;padding:11px;cursor:pointer;text-transform:uppercase;transition:all .2s;margin-top:8px;}
+.btn-danger:hover{background:rgba(232,0,45,.1);border-color:var(--red);}
+.admin-panel{background:rgba(245,200,66,.04);border:1px solid rgba(245,200,66,.18);border-radius:10px;padding:14px;margin-top:16px;}
+.admin-title{font-family:'Orbitron',monospace;font-size:10px;letter-spacing:3px;color:var(--gold);margin-bottom:10px;}
+.admin-input{width:100%;background:rgba(12,12,22,0.8);border:1px solid rgba(245,200,66,.18);border-radius:6px;color:var(--text);font-family:'Rajdhani',sans-serif;font-size:14px;padding:8px 12px;margin-bottom:8px;}
+.admin-input:focus{outline:none;border-color:rgba(245,200,66,.5);}
+.admin-input::placeholder{color:var(--muted);}
+.admin-btn{width:100%;background:rgba(245,200,66,.1);border:1px solid rgba(245,200,66,.28);border-radius:6px;color:var(--gold);font-family:'Orbitron',monospace;font-size:11px;font-weight:700;letter-spacing:2px;padding:10px;cursor:pointer;transition:all .2s;}
+.admin-btn:hover{background:rgba(245,200,66,.18);}
+.admin-drv-sel{width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:5px;color:var(--text);font-size:10px;padding:4px 3px;}
+.notif{position:fixed;top:68px;left:50%;transform:translateX(-50%) translateY(-4px);background:rgba(13,20,16,0.95);border:1px solid rgba(0,232,122,.4);border-radius:8px;padding:10px 20px;font-size:13px;font-weight:600;color:var(--green);letter-spacing:1px;z-index:600;opacity:0;transition:opacity .25s,transform .25s;pointer-events:none;white-space:nowrap;backdrop-filter:blur(16px);box-shadow:0 8px 32px rgba(0,0,0,0.4);}
+.notif.show{opacity:1;transform:translateX(-50%) translateY(0);}
+::-webkit-scrollbar{width:3px;}::-webkit-scrollbar-thumb{background:rgba(232,0,45,.5);border-radius:2px;}
+
+#dbg{max-height:220px;overflow-y:auto;background:rgba(0,0,0,.7);border-radius:6px;border:1px solid rgba(245,200,66,.12);font-family:monospace;font-size:10px;padding:8px 10px;margin-top:10px;}
 #dbg div{padding:2px 0;border-bottom:1px solid rgba(255,255,255,.04);}
-#dbg .ok{color:#00FF87;} #dbg .err{color:#FF4466;} #dbg .inf{color:#00D4FF;}
+#dbg .ok{color:var(--green);} #dbg .err{color:#FF4466;} #dbg .inf{color:var(--cyan);}
 
 /* Grille d'avatars casques */
 .helmet-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:12px;max-height:260px;overflow-y:auto;padding-right:2px;}
-.h-opt{background:transparent;border:2px solid transparent;border-radius:10px;padding:4px 2px;cursor:pointer;text-align:center;transition:all .2s;display:flex;flex-direction:column;align-items:center;gap:3px;} .h-opt:hover{transform:scale(1.08);}
-.h-opt:hover{border-color:rgba(255,255,255,.3);}
-.h-opt.active{border-color:var(--gold)!important;}
-.h-opt .h-lbl{font-size:8px;color:var(--muted);letter-spacing:.5px;white-space:nowrap;overflow:hidden;max-width:56px;text-overflow:ellipsis;}
+.h-opt{background:transparent;border:2px solid transparent;border-radius:10px;padding:4px 2px;cursor:pointer;text-align:center;transition:all .2s;display:flex;flex-direction:column;align-items:center;gap:3px;}
+.h-opt:hover{transform:scale(1.08);border-color:rgba(255,255,255,.22);}
+.h-opt.active{border-color:var(--gold)!important;box-shadow:0 0 12px var(--gold-glow);}
+.h-opt .h-lbl{font-size:8px;color:var(--muted-hi);letter-spacing:.5px;white-space:nowrap;overflow:hidden;max-width:56px;text-overflow:ellipsis;}
 /* Bloc favori profil */
-.fav-bloc{background:var(--bg2);border:1px solid var(--border);border-radius:4px;padding:14px;margin-bottom:14px;}
-.fav-row{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.05);}
+.fav-bloc{background:linear-gradient(135deg,var(--bg2),var(--bg));border:1px solid var(--border);border-radius:10px;padding:14px;margin-bottom:14px;}
+.fav-row{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.04);}
 .fav-row:last-child{border-bottom:none;padding-bottom:0;}
 .fav-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;}
 .fav-val{font-size:13px;font-weight:700;color:var(--text);}
-.fav-lbl{font-size:9px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;}
+.fav-lbl{font-size:9px;color:var(--muted-hi);letter-spacing:1px;text-transform:uppercase;}
 
 /* Logs debug */
-#dbg .ok  { color:#00FF87; }
+#dbg .ok  { color:var(--green); }
 #dbg .err { color:#FF4466; }
-#dbg .inf { color:#00D4FF; }
-#dbg .wrn { color:#FFD700; }
+#dbg .inf { color:var(--cyan); }
+#dbg .wrn { color:var(--gold); }
 
 /* ══════════════════════════════════════════
    RESPONSIVE — DESKTOP LAYOUT (≥768px)
@@ -524,11 +580,12 @@ header{position:sticky;top:0;z-index:100;background:rgba(5,5,8,.96);border-botto
     height: 100vh;
     overflow-y: auto;
     overflow-x: hidden;
-    background: var(--bg2);
+    background: rgba(9,9,16,0.98);
     border-right: 1px solid var(--border);
     position: sticky;
     top: 0;
     flex-shrink: 0;
+    backdrop-filter: blur(20px);
   }
 
   /* Header dans sidebar */
@@ -536,7 +593,7 @@ header{position:sticky;top:0;z-index:100;background:rgba(5,5,8,.96);border-botto
   #desktopSidebar header {
     display: block;
     position: static;
-    border-bottom: 1px solid var(--red);
+    border-bottom: 1px solid rgba(232,0,45,.4);
     background: transparent;
   }
   #desktopSidebar .hdr {
@@ -581,14 +638,16 @@ header{position:sticky;top:0;z-index:100;background:rgba(5,5,8,.96);border-botto
     max-width: none;
     width: 100%;
     padding: 10px 10px 0;
-    gap: 3px;
+    gap: 2px;
     overflow: visible;
     border-bottom: 1px solid var(--border);
+    background: transparent;
+    backdrop-filter: none;
   }
   #desktopSidebar .tab {
     text-align: left;
     padding: 10px 12px;
-    border-radius: 4px;
+    border-radius: 6px;
     border-bottom: none !important;
     font-size: 12px;
     letter-spacing: 1px;
@@ -599,10 +658,11 @@ header{position:sticky;top:0;z-index:100;background:rgba(5,5,8,.96);border-botto
     color: var(--text);
   }
   #desktopSidebar .tab.active {
-    background: rgba(232,0,45,.12);
+    background: rgba(232,0,45,.1);
     color: var(--red);
-    border-left: 3px solid var(--red) !important;
-    padding-left: 9px;
+    border-left: 2px solid var(--red) !important;
+    padding-left: 10px;
+    box-shadow: inset 0 0 20px rgba(232,0,45,0.04);
   }
 
   /* Score + logout en bas sidebar */
@@ -629,15 +689,7 @@ header{position:sticky;top:0;z-index:100;background:rgba(5,5,8,.96);border-botto
     flex-direction: column;
   }
 
-  /* submit-bar reste en bas du contenu droit */
-  .submit-bar {
-    position: sticky;
-    bottom: 0;
-    left: auto;
-    transform: none;
-    width: 100%;
-    max-width: none;
-  }
+  /* submit-bar inline, pas besoin d'override desktop */
 
   /* Contenu principal élargi */
   .content {
@@ -690,7 +742,13 @@ header{position:sticky;top:0;z-index:100;background:rgba(5,5,8,.96);border-botto
   #desktopSidebar { display: none !important; }
   #desktopContent { display: contents; }
 }
+/* ── Icônes SVG Lucide ── */
+.ic{display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;}
+.ic svg{display:block;}
+.pb-icon-wrap{width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
 </style>
+<!-- Lucide Icons -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/lucide/0.263.1/umd/lucide.min.js"></script>
 <!-- Firebase compat CDN -->
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
@@ -764,7 +822,7 @@ header{position:sticky;top:0;z-index:100;background:rgba(5,5,8,.96);border-botto
   <div class="hdr">
     <div class="logo">F1<span>PARIBOX</span></div>
     <div class="hdr-r">
-      <div><div class="score-pts" id="totalScore">0</div><div class="score-lbl">Mes Points</div></div>
+      <div><div class="score-pts" id="totalScore">0</div><div class="score-lbl">MES POINTS</div></div>
       <button class="logout-btn" id="logout-btn" title="Déconnexion">⏻</button>
     </div>
   </div>
@@ -844,7 +902,7 @@ header{position:sticky;top:0;z-index:100;background:rgba(5,5,8,.96);border-botto
     <button class="tab" data-tab="profil">👤 Profil</button>
   </div>
   <div class="sidebar-bottom">
-    <div><div class="score-pts" id="totalScore2">0</div><div class="score-lbl">Mes Points</div></div>
+    <div><div class="score-pts" id="totalScore2">0</div><div class="score-lbl">MES POINTS</div></div>
     <button class="logout-btn" id="logout-btn2" style="width:100%;text-align:center;margin-top:10px">⏻ Déconnexion</button>
   </div>
 </div>
@@ -866,9 +924,6 @@ header{position:sticky;top:0;z-index:100;background:rgba(5,5,8,.96);border-botto
     <!-- Pane : Paris GP -->
     <div class="sub-pane active" id="subpane-gp">
       <div id="betsStatusBar"></div>
-      <div id="resetBar" style="display:none;margin-bottom:10px">
-        <button class="btn-danger" id="resetBetsBtn" style="width:100%;font-size:11px">🗑️ RÉINITIALISER LES PARIS DES BLOCS ENCORE OUVERTS</button>
-      </div>
 
       <!-- Selects cachés — pilotés par le nouveau UI, logique JS inchangée -->
       <div style="display:none" aria-hidden="true">
@@ -897,35 +952,181 @@ header{position:sticky;top:0;z-index:100;background:rgba(5,5,8,.96);border-botto
       <!-- Nouveau UI Paris -->
       <div id="parisUI">
 
-        <!-- Sprint Blocs -->
-        <div id="sprintBlocs" style="display:none">
-          <!-- Sprint Quali -->
-          <div class="pb-bloc" id="pb-spQuali">
-            <div class="pb-hdr">
-              <div class="pb-hdr-left"><span class="pb-icon">🟠</span>
-                <div><div class="pb-title" id="sprintQualiBlocTitle">SPRINT QUALIFICATIONS</div><div class="pb-sub" id="pb-sub-spQuali">Vendredi</div></div>
+        <!-- Qualifications GP -->
+        <div class="pb-bloc" id="pb-quali">
+          <div class="pb-hdr">
+            <div class="pb-hdr-left">
+              <div class="pb-icon-wrap" style="background:rgba(168,85,247,.12)">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#a855f7" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/></svg>
+              </div>
+              <div><div class="pb-title" id="qualiBlocTitle">QUALIFICATIONS</div><div class="pb-sub" id="pb-sub-quali">—</div></div>
+            </div>
+            <div style="display:flex;align-items:center;gap:6px">
+              
+              <span class="pb-lock" id="pb-lock-quali" style="display:none">🔒</span>
+              <button id="reset-bloc-quali" class="pb-reset" onclick="resetBetsBloc('quali')" style="display:none">🗑️</button>
+            </div>
+          </div>
+          <div class="pb-body">
+            <div class="pb-picks-row">
+              <div class="pb-pick-slot"><div class="pb-pick-lbl"><svg width="8" height="8" viewBox="0 0 8 8" style="margin-right:5px;vertical-align:middle;flex-shrink:0"><circle cx="4" cy="4" r="4" fill="#a855f7"/></svg>Pole Position · +10</div><div class="pb-pick-card" id="pc-pole" onclick="openDriverModal('pole','Pole Position')"></div></div>
+              <div class="pb-pick-slot"><div class="pb-pick-lbl"><svg width="8" height="8" viewBox="0 0 8 8" style="margin-right:5px;vertical-align:middle;flex-shrink:0"><circle cx="4" cy="4" r="4" fill="#E8002D"/></svg>Flamme Rouge · +10</div><div class="pb-pick-card" id="pc-last" onclick="openDriverModal('last','Flamme Rouge')"></div></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Course GP — conteneur unique -->
+        <div class="pb-bloc" style="padding:0;overflow:visible;background:none;border:none;gap:0">
+          <!-- Header Course -->
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:var(--bg3);border:1px solid var(--border);border-radius:12px 12px 0 0;border-bottom:1px solid rgba(232,0,45,.2);">
+            <div style="display:flex;align-items:center;gap:10px">
+              <div class="pb-icon-wrap" style="background:rgba(232,0,45,.12)">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#E8002D" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="3 11 22 2 13 21 11 13 3 11"/></svg>
+              </div>
+              <div>
+                <div style="font-family:'Orbitron',monospace;font-size:10px;font-weight:700;letter-spacing:2px;color:var(--text)" id="courseHeader">COURSE</div>
+                <div style="font-size:11px;color:var(--muted-hi)" id="pb-sub-race">Dimanche</div>
+              </div>
+            </div>
+            <div style="display:flex;align-items:center;gap:6px">
+              
+              <span class="pb-lock" id="pb-lock-race" style="display:none">🔒</span>
+              <button id="reset-bloc-race" class="pb-reset" onclick="resetBetsBloc('race')" style="display:none">🗑️</button>
+            </div>
+          </div>
+
+          <!-- Podium -->
+          <div style="background:var(--bg3);border-left:1px solid var(--border);border-right:1px solid var(--border);border-bottom:1px solid rgba(255,255,255,.04);padding:12px 14px" id="pb-race">
+            <div style="font-family:'Orbitron',monospace;font-size:9px;font-weight:700;letter-spacing:2px;color:var(--muted-hi);margin-bottom:10px">PODIUM</div>
+            <div class="pb-podium-row">
+              <div class="pb-podium-slot"><div class="pb-podium-rank gold">🥇 P1 · +10</div><div class="pb-podium-card" id="pc-p1" onclick="openDriverModal('p1','P1')"></div></div>
+              <div class="pb-podium-slot"><div class="pb-podium-rank silver">🥈 P2 · +10</div><div class="pb-podium-card" id="pc-p2" onclick="openDriverModal('p2','P2')"></div></div>
+              <div class="pb-podium-slot"><div class="pb-podium-rank bronze">🥉 P3 · +10</div><div class="pb-podium-card" id="pc-p3" onclick="openDriverModal('p3','P3')"></div></div>
+            </div>
+            <div class="pb-bonus-bar" id="pb-tierce-gp" style="margin-top:10px">
+              <div style="flex:1">
+                <div style="display:flex;align-items:center;gap:6px;margin-bottom:2px">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#F5C842" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+                  <span style="font-family:'Orbitron',monospace;font-size:9px;font-weight:700;letter-spacing:1px;color:var(--gold)">TIERCÉ PARFAIT</span>
+                  <span id="bonusTxt" style="font-family:'Orbitron',monospace;font-size:9px;font-weight:700;color:var(--gold)">+25 pts</span>
+                </div>
+                <div style="font-size:10px;color:var(--muted);font-family:'Rajdhani',sans-serif">P1, P2 et P3 dans le bon ordre — bonus automatique</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Top 4-10 -->
+          <div style="background:var(--bg3);border-left:1px solid var(--border);border-right:1px solid var(--border);border-bottom:1px solid rgba(255,255,255,.04);padding:12px 14px" id="pb-top410">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
+              <div style="display:flex;align-items:baseline;gap:8px">
+                <div style="font-family:'Orbitron',monospace;font-size:9px;font-weight:700;letter-spacing:2px;color:var(--muted-hi)">TOP 4–10</div>
+                <div style="font-family:'Orbitron',monospace;font-size:9px;font-weight:700;color:var(--cyan)">+1 pt</div>
               </div>
               <div style="display:flex;align-items:center;gap:6px">
-                <span class="pb-badge pb-badge-orange">+5 pts</span>
+                <span class="pb-lock" id="pb-lock-top410" style="display:none">🔒</span>
+                <button id="reset-bloc-top410" class="pb-reset" onclick="resetBetsBloc('top410')" style="display:none">🗑️</button>
+              </div>
+            </div>
+            <div style="font-size:10px;color:var(--muted);font-family:'Rajdhani',sans-serif;margin-bottom:10px">Parie sur le rang exact de 7 pilotes — 1 point par bonne prédiction, jusqu'à 7 pts au total</div>
+            <div class="pb-t410-grid">
+              <div class="pb-t410-slot"><div class="pb-t410-rank">P4 · +1</div><div class="pb-pick-card pb-t410-card" id="pc-r4" onclick="openDriverModal('r4','P4')"></div></div>
+              <div class="pb-t410-slot"><div class="pb-t410-rank">P5 · +1</div><div class="pb-pick-card pb-t410-card" id="pc-r5" onclick="openDriverModal('r5','P5')"></div></div>
+              <div class="pb-t410-slot"><div class="pb-t410-rank">P6 · +1</div><div class="pb-pick-card pb-t410-card" id="pc-r6" onclick="openDriverModal('r6','P6')"></div></div>
+              <div class="pb-t410-slot"><div class="pb-t410-rank">P7 · +1</div><div class="pb-pick-card pb-t410-card" id="pc-r7" onclick="openDriverModal('r7','P7')"></div></div>
+              <div class="pb-t410-slot"><div class="pb-t410-rank">P8 · +1</div><div class="pb-pick-card pb-t410-card" id="pc-r8" onclick="openDriverModal('r8','P8')"></div></div>
+              <div class="pb-t410-slot"><div class="pb-t410-rank">P9 · +1</div><div class="pb-pick-card pb-t410-card" id="pc-r9" onclick="openDriverModal('r9','P9')"></div></div>
+              <div class="pb-t410-slot"><div class="pb-t410-rank">P10 · +1</div><div class="pb-pick-card pb-t410-card" id="pc-r10" onclick="openDriverModal('r10','P10')"></div></div>
+            </div>
+          </div>
+
+          <!-- Performance -->
+          <div style="background:var(--bg3);border-left:1px solid var(--border);border-right:1px solid var(--border);border-bottom:1px solid var(--border);border-radius:0 0 12px 12px;padding:12px 14px" id="pb-perf">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+              <div style="font-family:'Orbitron',monospace;font-size:9px;font-weight:700;letter-spacing:2px;color:var(--muted-hi)">PERFORMANCE</div>
+              <div style="display:flex;align-items:center;gap:6px">
+                <span class="pb-lock" id="pb-lock-perf" style="display:none">🔒</span>
+                <button id="reset-bloc-perf" class="pb-reset" onclick="resetBetsBloc('perf')" style="display:none">🗑️</button>
+              </div>
+            </div>
+            <div class="pb-perf-grid">
+              <div class="pb-perf-row" onclick="openDriverModal('br','Remontée du Jour')">
+                <div class="pb-perf-icon" style="background:rgba(24,200,255,.1)">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#18C8FF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
+                </div>
+                <div class="pb-perf-info">
+                  <div style="display:flex;align-items:baseline;gap:6px">
+                    <div class="pb-perf-name">Remontée du Jour</div>
+                    <div style="font-family:'Orbitron',monospace;font-size:9px;font-weight:700;color:var(--cyan)">+10 pts</div>
+                  </div>
+                  <div class="pb-perf-desc">Pilote avec la plus grande remontée de position entre la grille de départ et l'arrivée</div>
+                </div>
+                <div class="pb-perf-val" id="pv-br"></div>
+              </div>
+              <div class="pb-perf-row" onclick="openDriverModal('fp','Arrêt Éclair')">
+                <div class="pb-perf-icon" style="background:rgba(0,232,122,.1)">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#00E87A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                </div>
+                <div class="pb-perf-info">
+                  <div style="display:flex;align-items:baseline;gap:6px">
+                    <div class="pb-perf-name">Arrêt Éclair</div>
+                    <div style="font-family:'Orbitron',monospace;font-size:9px;font-weight:700;color:var(--green)">+10 pts</div>
+                  </div>
+                  <div class="pb-perf-desc">Pilote avec le pit stop le plus rapide de la course</div>
+                </div>
+                <div class="pb-perf-val" id="pv-fp"></div>
+              </div>
+              <div class="pb-perf-row" onclick="openDriverModal('t10','Top 10')">
+                <div class="pb-perf-icon" style="background:rgba(232,0,45,.1)">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#E8002D" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3"/></svg>
+                </div>
+                <div class="pb-perf-info">
+                  <div style="display:flex;align-items:baseline;gap:6px">
+                    <div class="pb-perf-name">Top 10</div>
+                    <div style="font-family:'Orbitron',monospace;font-size:9px;font-weight:700;color:var(--red)">+5 pts</div>
+                  </div>
+                  <div class="pb-perf-desc">Pilote qui termine dans les points (P1 à P10)</div>
+                </div>
+                <div class="pb-perf-val" id="pv-t10"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Sprint Blocs (si applicable) -->
+        <div id="sprintBlocs" style="display:none">
+          <!-- Sprint Qualifications -->
+          <div class="pb-bloc" id="pb-spQuali">
+            <div class="pb-hdr">
+              <div class="pb-hdr-left">
+                <div class="pb-icon-wrap" style="background:rgba(251,146,60,.12)">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fb923c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+                </div>
+                <div><div class="pb-title" id="sprintQualiBlocTitle">SPRINT QUALIFICATIONS</div><div class="pb-sub" id="pb-sub-spQuali">—</div></div>
+              </div>
+              <div style="display:flex;align-items:center;gap:6px">
+                
                 <span class="pb-lock" id="pb-lock-spQuali" style="display:none">🔒</span>
                 <button id="reset-bloc-spQuali" class="pb-reset" onclick="resetBetsBloc('spQuali')" style="display:none">🗑️</button>
               </div>
             </div>
             <div class="pb-body">
               <div class="pb-picks-row">
-                <div class="pb-pick-slot"><div class="pb-pick-lbl">🟣 Sprint Pole · +5</div><div class="pb-pick-card" id="pc-spole" onclick="openDriverModal('spole','Sprint Pole')"></div></div>
-                <div class="pb-pick-slot"><div class="pb-pick-lbl">🔴 Flamme Rouge · +5</div><div class="pb-pick-card" id="pc-slast" onclick="openDriverModal('slast','Flamme Rouge Sprint')"></div></div>
+                <div class="pb-pick-slot"><div class="pb-pick-lbl"><svg width="8" height="8" viewBox="0 0 8 8" style="margin-right:5px;vertical-align:middle;flex-shrink:0"><circle cx="4" cy="4" r="4" fill="#fb923c"/></svg>Sprint Pole · +5</div><div class="pb-pick-card" id="pc-spole" onclick="openDriverModal('spole','Sprint Pole')"></div></div>
+                <div class="pb-pick-slot"><div class="pb-pick-lbl"><svg width="8" height="8" viewBox="0 0 8 8" style="margin-right:5px;vertical-align:middle;flex-shrink:0"><circle cx="4" cy="4" r="4" fill="#E8002D"/></svg>Flamme Rouge · +5</div><div class="pb-pick-card" id="pc-slast" onclick="openDriverModal('slast','Flamme Rouge Sprint')"></div></div>
               </div>
             </div>
           </div>
           <!-- Sprint Race -->
           <div class="pb-bloc" id="pb-sprint">
             <div class="pb-hdr">
-              <div class="pb-hdr-left"><span class="pb-icon">🏎</span>
-                <div><div class="pb-title" id="sprintRaceBlocTitle">SPRINT RACE</div><div class="pb-sub" id="pb-sub-sprint">Samedi matin</div></div>
+              <div class="pb-hdr-left">
+                <div class="pb-icon-wrap" style="background:rgba(245,200,66,.12)">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#F5C842" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                </div>
+                <div><div class="pb-title" id="sprintRaceBlocTitle">SPRINT RACE</div><div class="pb-sub" id="pb-sub-sprint">—</div></div>
               </div>
               <div style="display:flex;align-items:center;gap:6px">
-                <span class="pb-badge pb-badge-gold">+5 pts</span>
+                
                 <span class="pb-lock" id="pb-lock-sprint" style="display:none">🔒</span>
                 <button id="reset-bloc-sprint" class="pb-reset" onclick="resetBetsBloc('sprint')" style="display:none">🗑️</button>
               </div>
@@ -936,112 +1137,27 @@ header{position:sticky;top:0;z-index:100;background:rgba(5,5,8,.96);border-botto
                 <div class="pb-podium-slot"><div class="pb-podium-rank silver">🥈 P2 · +5</div><div class="pb-podium-card" id="pc-sp2" onclick="openDriverModal('sp2','Sprint P2')"></div></div>
                 <div class="pb-podium-slot"><div class="pb-podium-rank bronze">🥉 P3 · +5</div><div class="pb-podium-card" id="pc-sp3" onclick="openDriverModal('sp3','Sprint P3')"></div></div>
               </div>
-              <div class="pb-bonus-bar" id="pb-tierce-sprint">⚡ Tiercé Parfait Sprint <span>+13 pts</span></div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Qualifications GP -->
-        <div class="pb-bloc" id="pb-quali">
-          <div class="pb-hdr">
-            <div class="pb-hdr-left"><span class="pb-icon">🟣</span>
-              <div><div class="pb-title" id="qualiBlocTitle">QUALIFICATIONS</div><div class="pb-sub" id="pb-sub-quali">Samedi</div></div>
-            </div>
-            <div style="display:flex;align-items:center;gap:6px">
-              <span class="pb-badge pb-badge-purple">+10 pts</span>
-              <span class="pb-lock" id="pb-lock-quali" style="display:none">🔒</span>
-              <button id="reset-bloc-quali" class="pb-reset" onclick="resetBetsBloc('quali')" style="display:none">🗑️</button>
-            </div>
-          </div>
-          <div class="pb-body">
-            <div class="pb-picks-row">
-              <div class="pb-pick-slot"><div class="pb-pick-lbl">🟣 Pole Position · +10</div><div class="pb-pick-card" id="pc-pole" onclick="openDriverModal('pole','Pole Position')"></div></div>
-              <div class="pb-pick-slot"><div class="pb-pick-lbl">🔴 Flamme Rouge · +10</div><div class="pb-pick-card" id="pc-last" onclick="openDriverModal('last','Flamme Rouge')"></div></div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Podium GP -->
-        <div class="pb-bloc" id="pb-race">
-          <div class="pb-hdr">
-            <div class="pb-hdr-left"><span class="pb-icon">🏆</span>
-              <div><div class="pb-title" id="podiumBlocTitle">PODIUM</div><div class="pb-sub" id="pb-sub-race">Dimanche</div></div>
-            </div>
-            <div style="display:flex;align-items:center;gap:6px">
-              <span class="pb-badge pb-badge-gold">+10 pts</span>
-              <span class="pb-lock" id="pb-lock-race" style="display:none">🔒</span>
-              <button id="reset-bloc-race" class="pb-reset" onclick="resetBetsBloc('race')" style="display:none">🗑️</button>
-            </div>
-          </div>
-          <div class="pb-body">
-            <div class="pb-podium-row">
-              <div class="pb-podium-slot"><div class="pb-podium-rank gold">🥇 P1 · +10</div><div class="pb-podium-card" id="pc-p1" onclick="openDriverModal('p1','P1')"></div></div>
-              <div class="pb-podium-slot"><div class="pb-podium-rank silver">🥈 P2 · +10</div><div class="pb-podium-card" id="pc-p2" onclick="openDriverModal('p2','P2')"></div></div>
-              <div class="pb-podium-slot"><div class="pb-podium-rank bronze">🥉 P3 · +10</div><div class="pb-podium-card" id="pc-p3" onclick="openDriverModal('p3','P3')"></div></div>
-            </div>
-            <div class="pb-bonus-bar" id="pb-tierce-gp">⚡ Tiercé Parfait <span id="bonusTxt">+25 pts</span></div>
-          </div>
-        </div>
-
-        <!-- Top 4-10 -->
-        <div class="pb-bloc" id="pb-top410">
-          <div class="pb-hdr">
-            <div class="pb-hdr-left"><span class="pb-icon">🎯</span>
-              <div><div class="pb-title" id="top410BlocTitle">TOP 4–10</div><div class="pb-sub">+1 pt par rang exact · max +7</div></div>
-            </div>
-            <div style="display:flex;align-items:center;gap:6px">
-              <span class="pb-badge pb-badge-cyan">+1 pt</span>
-              <span class="pb-lock" id="pb-lock-top410" style="display:none">🔒</span>
-              <button id="reset-bloc-top410" class="pb-reset" onclick="resetBetsBloc('top410')" style="display:none">🗑️</button>
-            </div>
-          </div>
-          <div class="pb-body">
-            <div class="pb-t410-grid">
-              <div class="pb-t410-slot"><div class="pb-t410-rank">P4</div><div class="pb-pick-card pb-t410-card" id="pc-r4" onclick="openDriverModal('r4','P4')"></div></div>
-              <div class="pb-t410-slot"><div class="pb-t410-rank">P5</div><div class="pb-pick-card pb-t410-card" id="pc-r5" onclick="openDriverModal('r5','P5')"></div></div>
-              <div class="pb-t410-slot"><div class="pb-t410-rank">P6</div><div class="pb-pick-card pb-t410-card" id="pc-r6" onclick="openDriverModal('r6','P6')"></div></div>
-              <div class="pb-t410-slot"><div class="pb-t410-rank">P7</div><div class="pb-pick-card pb-t410-card" id="pc-r7" onclick="openDriverModal('r7','P7')"></div></div>
-              <div class="pb-t410-slot"><div class="pb-t410-rank">P8</div><div class="pb-pick-card pb-t410-card" id="pc-r8" onclick="openDriverModal('r8','P8')"></div></div>
-              <div class="pb-t410-slot"><div class="pb-t410-rank">P9</div><div class="pb-pick-card pb-t410-card" id="pc-r9" onclick="openDriverModal('r9','P9')"></div></div>
-              <div class="pb-t410-slot"><div class="pb-t410-rank">P10</div><div class="pb-pick-card pb-t410-card" id="pc-r10" onclick="openDriverModal('r10','P10')"></div></div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Performance -->
-        <div class="pb-bloc" id="pb-perf">
-          <div class="pb-hdr">
-            <div class="pb-hdr-left"><span class="pb-icon">📡</span>
-              <div><div class="pb-title" id="perfBlocTitle">PERFORMANCE</div><div class="pb-sub">Stats live · données API</div></div>
-            </div>
-            <div style="display:flex;align-items:center;gap:6px">
-              <span class="pb-badge pb-badge-cyan">+5–10 pts</span>
-              <span class="pb-lock" id="pb-lock-perf" style="display:none">🔒</span>
-              <button id="reset-bloc-perf" class="pb-reset" onclick="resetBetsBloc('perf')" style="display:none">🗑️</button>
-            </div>
-          </div>
-          <div class="pb-body">
-            <div class="pb-perf-grid">
-              <div class="pb-perf-row" onclick="openDriverModal('br','Remontée du Jour')">
-                <div class="pb-perf-icon" style="background:rgba(0,212,255,.1)">📈</div>
-                <div class="pb-perf-info"><div class="pb-perf-name">Remontée du Jour</div><div class="pb-perf-desc">+10 pts · plus grande progression sur la grille</div></div>
-                <div class="pb-perf-val" id="pv-br"></div>
-              </div>
-              <div class="pb-perf-row" onclick="openDriverModal('fp','Arrêt Éclair')">
-                <div class="pb-perf-icon" style="background:rgba(0,255,135,.1)">🔧</div>
-                <div class="pb-perf-info"><div class="pb-perf-name">Arrêt Éclair</div><div class="pb-perf-desc">+10 pts · pit stop le plus rapide</div></div>
-                <div class="pb-perf-val" id="pv-fp"></div>
-              </div>
-              <div class="pb-perf-row" onclick="openDriverModal('t10','Top 10')">
-                <div class="pb-perf-icon" style="background:rgba(232,0,45,.1)">🎯</div>
-                <div class="pb-perf-info"><div class="pb-perf-name">Top 10</div><div class="pb-perf-desc">+5 pts · pilote qui termine dans les points</div></div>
-                <div class="pb-perf-val" id="pv-t10"></div>
+              <div class="pb-bonus-bar" id="pb-tierce-sprint" style="margin-top:10px">
+                <div style="flex:1">
+                  <div style="display:flex;align-items:center;gap:6px;margin-bottom:2px">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#fb923c" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+                    <span style="font-family:'Orbitron',monospace;font-size:9px;font-weight:700;letter-spacing:1px;color:#fb923c">TIERCÉ PARFAIT SPRINT</span>
+                    <span style="font-family:'Orbitron',monospace;font-size:9px;font-weight:700;color:#fb923c">+13 pts</span>
+                  </div>
+                  <div style="font-size:10px;color:var(--muted);font-family:'Rajdhani',sans-serif">P1, P2 et P3 du sprint dans le bon ordre — bonus automatique</div>
+                </div>
               </div>
             </div>
           </div>
         </div>
 
       </div><!-- /parisUI -->
+      <div id="resetBar" style="display:none;margin-top:8px">
+        <button class="btn-action-reset" id="resetBetsBtn">🗑️ Réinitialiser mes paris</button>
+      </div>
+      <div id="submitBar" style="display:none;margin-top:8px;padding-bottom:4px">
+        <button class="btn-primary" id="submitBetsBtn">VALIDER MES PARIS ▶</button>
+      </div>
     </div><!-- /subpane-gp -->
 
     <!-- Pane : Paris Saison -->
@@ -1052,45 +1168,56 @@ header{position:sticky;top:0;z-index:100;background:rgba(5,5,8,.96);border-botto
       <div class="pb-bloc pb-open" style="margin-top:8px">
         <div class="pb-hdr">
           <div class="pb-hdr-left">
-            <span class="pb-icon">🏎️</span>
+            <div class="pb-icon-wrap" style="background:rgba(245,200,66,.12)">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#F5C842" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M6 20v-2a6 6 0 0 1 12 0v2"/></svg>
+            </div>
             <div>
               <div class="pb-title">CHAMPIONNAT PILOTES</div>
               <div class="pb-sub">Podium final de la saison 2026</div>
             </div>
           </div>
-          <span class="pb-badge pb-badge-gold">+35 · +35 · +25</span>
+          
         </div>
         <div class="pb-body">
+          <!-- Selects cachés — source de vérité -->
+          <div style="display:none" aria-hidden="true">
+            <select id="sai-drv-p1" onchange="checkSaisonBonus()"><option value="">—</option></select>
+            <select id="sai-drv-p2" onchange="checkSaisonBonus()"><option value="">—</option></select>
+            <select id="sai-drv-p3" onchange="checkSaisonBonus()"><option value="">—</option></select>
+          </div>
           <div class="pb-podium-row">
             <div class="pb-podium-slot">
               <div class="pb-podium-rank gold">🥇 Champion · +35</div>
-              <div class="pod-slot p1" style="border-radius:8px;border:1.5px solid rgba(255,215,0,.2);background:var(--bg2)">
-                <label style="color:rgba(255,215,0,.6)">P1</label>
-                <select id="sai-drv-p1" onchange="checkSaisonBonus()"><option value="">—</option></select>
-              </div>
+              <div class="pb-podium-card" id="sai-pc-drv-p1" onclick="openSaisonDriverModal('drv-p1','Champion Pilotes')"></div>
             </div>
             <div class="pb-podium-slot">
               <div class="pb-podium-rank silver">🥈 2ème · +35</div>
-              <div class="pod-slot p2" style="border-radius:8px;border:1.5px solid rgba(192,192,192,.15);background:var(--bg2)">
-                <label style="color:rgba(192,192,192,.6)">P2</label>
-                <select id="sai-drv-p2" onchange="checkSaisonBonus()"><option value="">—</option></select>
-              </div>
+              <div class="pb-podium-card" id="sai-pc-drv-p2" onclick="openSaisonDriverModal('drv-p2','2ème Pilotes')"></div>
             </div>
             <div class="pb-podium-slot">
               <div class="pb-podium-rank bronze">🥉 3ème · +25</div>
-              <div class="pod-slot p3" style="border-radius:8px;border:1.5px solid rgba(205,127,50,.15);background:var(--bg2)">
-                <label style="color:rgba(205,127,50,.6)">P3</label>
-                <select id="sai-drv-p3" onchange="checkSaisonBonus()"><option value="">—</option></select>
-              </div>
+              <div class="pb-podium-card" id="sai-pc-drv-p3" onclick="openSaisonDriverModal('drv-p3','3ème Pilotes')"></div>
             </div>
           </div>
           <div class="pb-bonus-bar" id="pb-saison-drv-bonus" style="margin-top:10px">
-            ⚡ Tiercé Parfait Pilotes
-            <span id="saiDrvBonusTxt">+25 pts</span>
+            <div style="flex:1">
+              <div style="display:flex;align-items:center;gap:6px;margin-bottom:2px">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#F5C842" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+                <span style="font-family:'Orbitron',monospace;font-size:9px;font-weight:700;letter-spacing:1px;color:var(--gold)">TIERCÉ PARFAIT PILOTES</span>
+                <span id="saiDrvBonusTxt" style="font-family:'Orbitron',monospace;font-size:9px;font-weight:700;color:var(--gold)">+25 pts</span>
+              </div>
+              <div style="font-size:10px;color:var(--muted);font-family:'Rajdhani',sans-serif">Champion, 2ème et 3ème pilote dans le bon ordre</div>
+            </div>
           </div>
-          <div class="pb-bonus-bar" style="margin-top:6px;background:rgba(0,212,255,.04);border-color:rgba(0,212,255,.15)">
-            ℹ️ P2/P3 dans le podium (mauvais rang)
-            <span style="color:var(--cyan)">+10 pts</span>
+          <div class="pb-bonus-bar" style="margin-top:6px;background:rgba(24,200,255,.04);border-color:rgba(24,200,255,.15)">
+            <div style="flex:1">
+              <div style="display:flex;align-items:center;gap:6px;margin-bottom:2px">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#18C8FF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                <span style="font-family:'Orbitron',monospace;font-size:9px;font-weight:700;letter-spacing:1px;color:var(--cyan)">MAUVAIS RANG</span>
+                <span style="font-family:'Orbitron',monospace;font-size:9px;font-weight:700;color:var(--cyan)">+10 pts</span>
+              </div>
+              <div style="font-size:10px;color:var(--muted);font-family:'Rajdhani',sans-serif">P2 ou P3 dans le podium mais à la mauvaise place</div>
+            </div>
           </div>
         </div>
       </div>
@@ -1099,54 +1226,65 @@ header{position:sticky;top:0;z-index:100;background:rgba(5,5,8,.96);border-botto
       <div class="pb-bloc pb-open">
         <div class="pb-hdr">
           <div class="pb-hdr-left">
-            <span class="pb-icon">🏭</span>
+            <div class="pb-icon-wrap" style="background:rgba(24,200,255,.12)">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#18C8FF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18"/><path d="M9 21V9"/></svg>
+            </div>
             <div>
               <div class="pb-title">CHAMPIONNAT ÉCURIES</div>
               <div class="pb-sub">Podium final des constructeurs 2026</div>
             </div>
           </div>
-          <span class="pb-badge pb-badge-cyan">+20 · +12 · +8</span>
+          
         </div>
         <div class="pb-body">
+          <!-- Selects cachés — source de vérité -->
+          <div style="display:none" aria-hidden="true">
+            <select id="sai-team-p1" onchange="checkSaisonBonus()"><option value="">—</option></select>
+            <select id="sai-team-p2" onchange="checkSaisonBonus()"><option value="">—</option></select>
+            <select id="sai-team-p3" onchange="checkSaisonBonus()"><option value="">—</option></select>
+          </div>
           <div class="pb-podium-row">
             <div class="pb-podium-slot">
               <div class="pb-podium-rank gold">🥇 Champion · +20</div>
-              <div class="pod-slot p1" style="border-radius:8px;border:1.5px solid rgba(255,215,0,.2);background:var(--bg2)">
-                <label style="color:rgba(255,215,0,.6)">P1</label>
-                <select id="sai-team-p1" onchange="checkSaisonBonus()"><option value="">—</option></select>
-              </div>
+              <div class="pb-podium-card" id="sai-pc-team-p1" onclick="openSaisonTeamModal('team-p1','Champion Écuries')"></div>
             </div>
             <div class="pb-podium-slot">
               <div class="pb-podium-rank silver">🥈 2ème · +12</div>
-              <div class="pod-slot p2" style="border-radius:8px;border:1.5px solid rgba(192,192,192,.15);background:var(--bg2)">
-                <label style="color:rgba(192,192,192,.6)">P2</label>
-                <select id="sai-team-p2" onchange="checkSaisonBonus()"><option value="">—</option></select>
-              </div>
+              <div class="pb-podium-card" id="sai-pc-team-p2" onclick="openSaisonTeamModal('team-p2','2ème Écuries')"></div>
             </div>
             <div class="pb-podium-slot">
               <div class="pb-podium-rank bronze">🥉 3ème · +8</div>
-              <div class="pod-slot p3" style="border-radius:8px;border:1.5px solid rgba(205,127,50,.15);background:var(--bg2)">
-                <label style="color:rgba(205,127,50,.6)">P3</label>
-                <select id="sai-team-p3" onchange="checkSaisonBonus()"><option value="">—</option></select>
-              </div>
+              <div class="pb-podium-card" id="sai-pc-team-p3" onclick="openSaisonTeamModal('team-p3','3ème Écuries')"></div>
             </div>
           </div>
           <div class="pb-bonus-bar" id="pb-saison-team-bonus" style="margin-top:10px">
-            ⚡ Tiercé Parfait Écuries
-            <span id="saiTeamBonusTxt">+10 pts</span>
+            <div style="flex:1">
+              <div style="display:flex;align-items:center;gap:6px;margin-bottom:2px">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#F5C842" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+                <span style="font-family:'Orbitron',monospace;font-size:9px;font-weight:700;letter-spacing:1px;color:var(--gold)">TIERCÉ PARFAIT ÉCURIES</span>
+                <span id="saiTeamBonusTxt" style="font-family:'Orbitron',monospace;font-size:9px;font-weight:700;color:var(--gold)">+10 pts</span>
+              </div>
+              <div style="font-size:10px;color:var(--muted);font-family:'Rajdhani',sans-serif">Champion, 2ème et 3ème écurie dans le bon ordre</div>
+            </div>
           </div>
-          <div class="pb-bonus-bar" style="margin-top:6px;background:rgba(0,212,255,.04);border-color:rgba(0,212,255,.15)">
-            ℹ️ P2/P3 dans le podium (mauvais rang)
-            <span style="color:var(--cyan)">+6 pts</span>
+          <div class="pb-bonus-bar" style="margin-top:6px;background:rgba(24,200,255,.04);border-color:rgba(24,200,255,.15)">
+            <div style="flex:1">
+              <div style="display:flex;align-items:center;gap:6px;margin-bottom:2px">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#18C8FF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                <span style="font-family:'Orbitron',monospace;font-size:9px;font-weight:700;letter-spacing:1px;color:var(--cyan)">MAUVAIS RANG</span>
+                <span style="font-family:'Orbitron',monospace;font-size:9px;font-weight:700;color:var(--cyan)">+6 pts</span>
+              </div>
+              <div style="font-size:10px;color:var(--muted);font-family:'Rajdhani',sans-serif">P2 ou P3 dans le podium mais à la mauvaise place</div>
+            </div>
           </div>
         </div>
       </div>
 
-      <div id="saisonResetBar" style="display:none;margin-top:6px">
-        <button class="btn-danger" onclick="resetSaisonBets()">🗑️ RÉINITIALISER MES PARIS SAISON</button>
+      <div id="saisonResetBar" style="display:none;margin-top:8px">
+        <button class="btn-action-reset" onclick="resetSaisonBets()">🗑️ Réinitialiser mes paris</button>
       </div>
-      <div id="saisonSubmitWrap" style="margin-top:10px;display:none">
-        <button class="btn-primary" style="width:100%;padding:14px" onclick="submitSaisonBets()">VALIDER MES PARIS SAISON ▶</button>
+      <div id="saisonSubmitWrap" style="margin-top:8px;display:none;padding-bottom:4px">
+        <button class="btn-primary" onclick="submitSaisonBets()">VALIDER MES PARIS ▶</button>
       </div>
     </div>
 
@@ -1162,19 +1300,19 @@ header{position:sticky;top:0;z-index:100;background:rgba(5,5,8,.96);border-botto
 
   <!-- ── CLASSEMENT ── -->
   <section id="section-classement" class="section">
-    <div class="bloc-title">Classement Paribox · <span class="fb-dot">LIVE</span></div>
+    <div class="bloc-title">CLASSEMENT · <span class="fb-dot">LIVE</span></div>
     <div id="leaderboard"><div class="loader"><div class="spinner"></div><div class="loader-txt">Connexion…</div></div></div>
   </section>
 
   <!-- ── CIRCUIT ── -->
   <section id="section-circuit" class="section">
-    <div class="bloc-title">📋 Saison 2026 · 24 Grands Prix</div>
+    <div class="bloc-title">CALENDRIER 2026 · 24 GRANDS PRIX</div>
     <div id="gp25List"></div>
   </section>
 
   <!-- ── CALENDRIER ── -->
   <section id="section-calendrier" class="section">
-    <div class="bloc-title">Saison 2026 · 24 Grands Prix</div>
+    <div class="bloc-title">CALENDRIER 2026 · 24 GRANDS PRIX</div>
     <div id="calList"></div>
   </section>
 
@@ -1487,9 +1625,6 @@ header{position:sticky;top:0;z-index:100;background:rgba(5,5,8,.96);border-botto
 
 </div><!-- /content -->
 
-<div class="submit-bar" id="submitBar" style="display:none">
-  <button class="btn-primary" id="submitBetsBtn">VALIDER MES PARIS ▶</button>
-</div>
 </div><!-- /desktopContent -->
 </div><!-- /mainApp -->
 
@@ -2174,7 +2309,7 @@ function buildEventList(cal) {
   }
   if (cal.spQ) {
     const d = parseEventDate(cal.spQ, cal.raceDate);
-    if (d) events.push({type:'spQ', label:`Qualif Sprint · ${flag} ${gpName}`, date:d, importance:'sprint'});
+    if (d) events.push({type:'spQ', label:`Sprint Qualifications · ${flag} ${gpName}`, date:d, importance:'sprint'});
   }
   if (cal.fp3) {
     const d = parseEventDate(cal.fp3, cal.raceDate);
@@ -2850,7 +2985,7 @@ async function loadGP25(r) {
   const statsHtml = '<div style="padding:0 10px 10px">'
     + '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">'
     + `<div class="cinfo-cell"><div class="cinfo-val" id="${uid}-race" style="font-size:13px">${spin}</div><div class="cinfo-lbl">🏁 Record course</div></div>`
-    + `<div class="cinfo-cell"><div class="cinfo-val" id="${uid}-quali" style="font-size:13px">${spin}</div><div class="cinfo-lbl">⏱ Record qualif</div></div>`
+    + `<div class="cinfo-cell"><div class="cinfo-val" id="${uid}-quali" style="font-size:13px">${spin}</div><div class="cinfo-lbl">⏱ Record qualifications</div></div>`
     + '</div>'
     + `<div id="${uid}-sectors" style="margin-bottom:8px">`
     + '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px">'
@@ -2865,7 +3000,7 @@ async function loadGP25(r) {
     + '</div></div>';
 
   const resultsHtml = '<div style="padding:0 10px 12px">'
-    + (() => { const _ce = CALENDAR.find(ce => ce.round === r); const _s = (_ce && new Date() > (_ce.raceDate || new Date('2099'))) ? '2026' : '2025'; return `<div class="bloc-title" id="${uid}-restitle" style="font-size:10px;margin-bottom:8px">🏆 Résultats ${_s}</div>`; })()
+    + (() => { const _ce = CALENDAR.find(ce => ce.round === r); const _s = (_ce && new Date() > (_ce.raceDate || new Date('2099'))) ? '2026' : '2025'; return `<div class="bloc-title" id="${uid}-restitle" style="font-size:10px;margin-bottom:8px">🏁 RÉSULTATS ${_s}</div>`; })()
     + `<div id="${uid}-results"><div style="display:flex;justify-content:center;padding:12px">${spin}</div></div>`
     + '</div>';
 
@@ -3596,6 +3731,7 @@ window.resetBets = async () => {
 
   try {
     await betsRoundRef(CU.id, _round).set(myBets);
+    myBets = null;
     notif('🔄 Paris réinitialisés (blocs ouverts)');
     _applyBetsFormState('open');
   } catch(e) { console.error('resetBets', e); notif('❌ Erreur Firebase'); }
@@ -3620,6 +3756,8 @@ window.resetBetsBloc = async (bloc) => {
   try {
     await betsRoundRef(CU.id, _round).set(myBets);
     notif('🔄 Bloc réinitialisé');
+    // Réafficher le bouton valider après un reset bloc
+    myBets = null;
     _applyBetsFormState('open');
   } catch(e) { console.error('resetBetsBloc', e); notif('❌ Erreur Firebase'); }
 };
@@ -3779,7 +3917,7 @@ window.renderSeasonResult = async function(force = false) {
     const days = Math.floor(diff / 86400000);
     const h = Math.floor(diff % 86400000 / 3600000);
     box.innerHTML = `<div style="margin-top:16px">
-      <div class="bloc-title">🏆 Paris Saison 2026</div>
+      <div class="bloc-title">PARIS SAISON 2026</div>
       <div style="background:var(--bg3);border:1px solid var(--border);border-radius:4px;padding:16px;text-align:center;color:var(--muted);font-size:12px">
         <div style="font-size:24px;margin-bottom:8px">⏳</div>
         <div style="font-family:'Orbitron',monospace;font-size:10px;letter-spacing:2px;color:var(--gold);margin-bottom:6px">RÉSULTATS SAISON DANS</div>
@@ -3794,7 +3932,7 @@ window.renderSeasonResult = async function(force = false) {
   // Saison terminée : charger et calculer
   _seasonResultRendering = true;
   box.innerHTML = `<div style="margin-top:16px">
-    <div class="bloc-title">🏆 Paris Saison 2026</div>
+    <div class="bloc-title">PARIS SAISON 2026</div>
     <div style="background:var(--bg3);border:1px solid var(--border);border-radius:4px;padding:20px;text-align:center">
       <div class="spinner" style="margin:0 auto 8px"></div>
       <div style="font-size:11px;color:var(--muted)">Chargement des standings 2026…</div>
@@ -3805,7 +3943,7 @@ window.renderSeasonResult = async function(force = false) {
     const standings = await fetchSeasonStandings();
     if (!standings) {
       box.innerHTML = `<div style="margin-top:16px">
-        <div class="bloc-title">🏆 Paris Saison 2026</div>
+        <div class="bloc-title">PARIS SAISON 2026</div>
         <div style="background:var(--bg3);border:1px solid var(--border);border-radius:4px;padding:20px;text-align:center;color:var(--muted);font-size:12px">
           <div style="font-size:28px;margin-bottom:8px">⏳</div>
           <div style="font-weight:700;color:var(--text);margin-bottom:4px">Standings pas encore disponibles</div>
@@ -3823,7 +3961,7 @@ window.renderSeasonResult = async function(force = false) {
 
     if (!mySeasonBets) {
       box.innerHTML = `<div style="margin-top:16px">
-        <div class="bloc-title">🏆 Paris Saison 2026</div>
+        <div class="bloc-title">PARIS SAISON 2026</div>
         <div style="background:var(--bg3);border:1px solid var(--border);border-radius:4px;padding:20px;text-align:center;color:var(--muted);font-size:12px">
           <div style="font-size:28px;margin-bottom:8px">📋</div>
           <div>Tu n'avais pas posé de paris saison.</div>
@@ -3884,7 +4022,7 @@ window.renderSeasonResult = async function(force = false) {
     }).join('');
 
     box.innerHTML = `<div style="margin-top:16px">
-      <div class="bloc-title">🏆 Paris Saison 2026 · <span style="color:var(--green)">TERMINÉE</span></div>
+      <div class="bloc-title">PARIS SAISON 2026 · <span style="color:var(--green)">TERMINÉE</span></div>
       <div style="background:var(--bg3);border:1px solid var(--border);border-radius:4px;overflow:hidden">
         <div style="padding:10px 14px 8px">
           ${realHtml}
@@ -3900,7 +4038,7 @@ window.renderSeasonResult = async function(force = false) {
 
   } catch(e) {
     box.innerHTML = `<div style="margin-top:16px">
-      <div class="bloc-title">🏆 Paris Saison 2026</div>
+      <div class="bloc-title">PARIS SAISON 2026</div>
       <div style="background:var(--bg3);border:1px solid var(--border);border-radius:4px;padding:20px;text-align:center;color:var(--muted);font-size:12px">
         <div>⚠️ Erreur : ${e.message}</div>
         <button onclick="_seasonStandings=null;renderSeasonResult(true)" style="margin-top:10px;background:var(--bg2);border:1px solid var(--border);color:var(--cyan);font-family:'Rajdhani',sans-serif;font-size:11px;font-weight:700;letter-spacing:2px;padding:8px 16px;border-radius:4px;cursor:pointer">🔄 RÉESSAYER</button>
@@ -4387,7 +4525,7 @@ async function renderResults() {
   }
 
   const doneCount = pastGPs.filter(c => c.raceDate <= now).length;
-  box.innerHTML = `<div class="bloc-title" style="margin-top:0">🏁 Résultats saison 2026 · ${doneCount} GP</div>`
+  box.innerHTML = `<div class="bloc-title" style="margin-top:0">RÉSULTATS 2026 · ${doneCount} GP</div>`
     + pastGPs.slice().reverse().map(cal => `
       <div class="gp25-round" id="rr-${cal.round}">
         <div class="gp25-hdr" onclick="toggleRR(${cal.round})">
@@ -5110,18 +5248,19 @@ function renderBetsStatusBar() {
 
   const fmtCountdown2 = (ms) => {
     const ts = Math.floor(ms / 1000);
-    const h = Math.floor(ts / 3600);
+    const d = Math.floor(ts / 86400);
+    const h = Math.floor(ts % 86400 / 3600);
     const m = Math.floor(ts % 3600 / 60);
     const s = ts % 60;
-    return pad(h) + ':' + pad(m) + ':' + pad(s);
+    return d > 0 ? `${d}j ${pad(h)}:${pad(m)}:${pad(s)}` : `${pad(h)}:${pad(m)}:${pad(s)}`;
   };
 
   if (state === 'waiting') {
     const diff = openDate - new Date();
     bar.className = 'bets-status-bar waiting';
     bar.innerHTML = `<div>
-      <div class="bets-status-lbl">⏳ Paris pas encore ouverts</div>
-      <div style="font-size:10px;color:var(--muted);margin-top:2px">${flag} Grand Prix ${country} · ouvre après le GP précédent</div>
+      <div class="bets-status-lbl">⏳ PARIS PAS ENCORE OUVERTS</div>
+      <div style="font-size:10px;color:var(--muted-hi);margin-top:2px">${flag} Grand Prix ${country} · ouvre après le GP précédent</div>
     </div>
     <div class="bets-status-cntd">${fmtCountdown2(diff)}</div>`;
     // Verrouiller le formulaire
@@ -5139,16 +5278,16 @@ function renderBetsStatusBar() {
     const diff = next ? next.date - now2 : 0;
     bar.className = 'bets-status-bar open';
     bar.innerHTML = `<div>
-      <div class="bets-status-lbl">🟢 Paris ouverts</div>
-      <div style="font-size:10px;color:var(--muted);margin-top:2px">${flag} Grand Prix ${country}${next ? ` · ferme avant ${next.label}` : ''}</div>
+      <div class="bets-status-lbl">🟢 PARIS WEEKEND OUVERTS</div>
+      <div style="font-size:10px;color:var(--muted-hi);margin-top:2px">${flag} Grand Prix ${country}${next ? ` · ferme avant ${next.label}` : ''}</div>
     </div>
     <div class="bets-status-cntd">${next ? fmtCountdown2(diff) : 'BIENTÔT'}</div>`;
     _applyBetsFormState('open');
   } else {
     bar.className = 'bets-status-bar closed';
     bar.innerHTML = `<div>
-      <div class="bets-status-lbl">🔒 Paris fermés</div>
-      <div style="font-size:10px;color:var(--muted);margin-top:2px">${flag} Grand Prix ${country} · clôturés avant les qualifs</div>
+      <div class="bets-status-lbl">🔒 PARIS WEEKEND FERMÉS</div>
+      <div style="font-size:10px;color:var(--muted-hi);margin-top:2px">${flag} Grand Prix ${country} · clôturés avant les qualifs</div>
     </div>
     <div class="bets-status-cntd" style="font-size:11px">FERMÉ</div>`;
     _applyBetsFormState('closed');
@@ -5156,7 +5295,16 @@ function renderBetsStatusBar() {
 }
 
 function _applyBetsFormState(state) {
-  const has = myBets && !myBets.deleted;
+  const _mb = myBets;
+  // has = true seulement si myBets existe ET contient au moins une vraie valeur
+  const _checkVal = (obj) => obj && Object.values(obj).some(v => v && v !== '');
+  const has = _mb && (
+    _checkVal(_mb.quali) ||
+    _checkVal(_mb.p) ||
+    _checkVal(_mb.perf) ||
+    _checkVal(_mb.top410) ||
+    _checkVal(_mb.sprint)
+  );
   const cal = getBettingGP();
   const now = new Date();
   const closes = getBlockCloseDates(cal);
@@ -5196,7 +5344,7 @@ function _applyBetsFormState(state) {
   // Checkboxes événements : liées au bloc race
   document.querySelectorAll('#section-paris input[type=checkbox]').forEach(el => el.disabled = !blockOpen.race);
 
-  // Bouton submit : visible si au moins un bloc encore ouvert
+  // Bouton submit : visible dès qu'un bloc est ouvert (sauf si paris déjà soumis et rien changé)
   const anyOpen = Object.values(blockOpen).some(v => v);
   gEl('submitBar').style.display = anyOpen ? 'block' : 'none';
   gEl('resetBar').style.display  = (has && anyOpen) ? 'block' : 'none';
@@ -5215,7 +5363,7 @@ function _applyBetsFormState(state) {
 function _updateBlockLockUI(groups, closes, now, allClosed) {
   const lockInfo = [
     { bloc: 'quali',   ids: ['qualiBlocTitle'],        closeDate: closes.quali   },
-    { bloc: 'race',    ids: ['podiumBlocTitle','top410BlocTitle','perfBlocTitle'], closeDate: closes.race },
+    { bloc: 'race',    ids: ['courseHeader'], closeDate: closes.race },
     { bloc: 'spQuali', ids: ['sprintQualiBlocTitle'],  closeDate: closes.spQuali },
     { bloc: 'sprint',  ids: ['sprintRaceBlocTitle'],   closeDate: closes.sprint  },
   ];
@@ -5238,31 +5386,39 @@ function _updateBlockLockUI(groups, closes, now, allClosed) {
 
 function startBetsStatusBar() {
   if (_betsStatusInt) clearInterval(_betsStatusInt);
-  // Mettre à jour le titre du bloc qualifs avec la date réelle
   const _gp = getBettingGP();
+  const _days  = ['Dim','Lun','Mar','Mer','Jeu','Ven','Sam'];
+  const _months = ['Jan','Fév','Mar','Avr','Mai','Jun','Jul','Aoû','Sep','Oct','Nov','Déc'];
+  const _fmtDate = d => d ? `${_days[d.getDay()]} ${d.getDate()} ${_months[d.getMonth()]} · ${String(d.getHours()).padStart(2,'0')}h${String(d.getMinutes()).padStart(2,'0')}` : '—';
+
+  // Qualifications — titre propre, date dans le sous-titre
   const _qualiDate = parseEventDate(_gp.quali, _gp.raceDate);
-  const _titleEl = gEl('qualiBlocTitle');
-  if (_titleEl && _qualiDate) {
-    const _days = ['Dim','Lun','Mar','Mer','Jeu','Ven','Sam'];
-    const _months = ['Jan','Fév','Mar','Avr','Mai','Jun','Jul','Aoû','Sep','Oct','Nov','Déc'];
-    _titleEl.textContent = `Qualifications · ${_days[_qualiDate.getDay()]} ${_qualiDate.getDate()} ${_months[_qualiDate.getMonth()]} · ${String(_qualiDate.getHours()).padStart(2,'0')}h${String(_qualiDate.getMinutes()).padStart(2,'0')}`;
-  }
+  const _qualiSubEl = gEl('pb-sub-quali');
+  if (_qualiSubEl) _qualiSubEl.textContent = _fmtDate(_qualiDate);
+  const _qualiBlocTitleEl = gEl('qualiBlocTitle');
+  if (_qualiBlocTitleEl) _qualiBlocTitleEl.textContent = 'QUALIFICATIONS';
+
+  // Course — date dans le sous-titre du header Course
+  const _raceDate2 = _gp.raceDate;
+  const _raceSubEl = gEl('pb-sub-race');
+  if (_raceSubEl) _raceSubEl.textContent = _fmtDate(_raceDate2);
+
   // Blocs sprint — afficher seulement si sprint au programme
   const _sprintBlocs = gEl('sprintBlocs');
   if (_sprintBlocs) {
     const _hasSprint = !!_gp.sprint;
     _sprintBlocs.style.display = _hasSprint ? 'block' : 'none';
     if (_hasSprint) {
-      // Titres avec dates
       const _spQDate = parseEventDate(_gp.spQ, _gp.raceDate);
       const _spRDate = parseEventDate(_gp.sprint, _gp.raceDate);
-      const _days2 = ['Dim','Lun','Mar','Mer','Jeu','Ven','Sam'];
-      const _mo2 = ['Jan','Fév','Mar','Avr','Mai','Jun','Jul','Aoû','Sep','Oct','Nov','Déc'];
-      const _fmt = d => d ? `${_days2[d.getDay()]} ${d.getDate()} ${_mo2[d.getMonth()]} · ${String(d.getHours()).padStart(2,'0')}h${String(d.getMinutes()).padStart(2,'0')}` : '';
-      const _sqEl = gEl('sprintQualiBlocTitle');
-      const _srEl = gEl('sprintRaceBlocTitle');
-      if (_sqEl && _spQDate) _sqEl.textContent = `Sprint Qualifications · ${_fmt(_spQDate)}`;
-      if (_srEl && _spRDate) _srEl.textContent = `Sprint Race · ${_fmt(_spRDate)}`;
+      const _sqSubEl = gEl('pb-sub-spQuali');
+      const _srSubEl = gEl('pb-sub-sprint');
+      if (_sqSubEl) _sqSubEl.textContent = _fmtDate(_spQDate);
+      if (_srSubEl) _srSubEl.textContent = _fmtDate(_spRDate);
+      const _sqTitleEl = gEl('sprintQualiBlocTitle');
+      const _srTitleEl = gEl('sprintRaceBlocTitle');
+      if (_sqTitleEl) _sqTitleEl.textContent = 'SPRINT QUALIFICATIONS';
+      if (_srTitleEl) _srTitleEl.textContent = 'SPRINT RACE';
     }
   }
   renderBetsStatusBar();
@@ -5343,11 +5499,8 @@ function fillSaisonSelects() {
     });
     if (cur) sel.value = cur;
   });
-  // Activer si paris ouverts
-  if (getSaisonState() === 'open') {
-    ['sai-drv-p1','sai-drv-p2','sai-drv-p3','sai-team-p1','sai-team-p2','sai-team-p3']
-      .forEach(id => { const el=gEl(id); if(el) el.disabled=false; });
-  }
+  // Les selects sont cachés, pas besoin de les activer visuellement
+  _saiSyncAllCards();
 }
 
 // ─── Charger mes paris saison depuis Firebase ────────────────
@@ -5370,7 +5523,180 @@ function _applySaisonBets(b) {
   const sv = (id, v) => { const el = gEl(id); if (el && v) el.value = v; };
   sv('sai-drv-p1', b.drv?.p1); sv('sai-drv-p2', b.drv?.p2); sv('sai-drv-p3', b.drv?.p3);
   sv('sai-team-p1', b.team?.p1); sv('sai-team-p2', b.team?.p2); sv('sai-team-p3', b.team?.p3);
+  _saiSyncAllCards();
   checkSaisonBonus();
+}
+
+/* ════════ SAISON — MODAL PILOTES & ÉCURIES ════════ */
+
+const _SAI_DRV_MAP  = { 'drv-p1':'sai-drv-p1', 'drv-p2':'sai-drv-p2', 'drv-p3':'sai-drv-p3' };
+const _SAI_TEAM_MAP = { 'team-p1':'sai-team-p1','team-p2':'sai-team-p2','team-p3':'sai-team-p3' };
+let _saiActiveField = null;
+let _saiActiveType  = null; // 'drv' | 'team'
+
+// ── Ouvrir modal pilotes saison ──
+window.openSaisonDriverModal = function(field, label) {
+  _saiActiveField = field;
+  _saiActiveType  = 'drv';
+  gEl('saiDrvModalTitle').textContent = label.toUpperCase();
+  gEl('saiDrvSearch').value = '';
+  _saiDrvRenderList('');
+  gEl('saiDrvModal').classList.add('open');
+  setTimeout(() => { const s=gEl('saiDrvSearch'); if(s) s.focus(); }, 150);
+};
+
+// ── Ouvrir modal écuries saison ──
+window.openSaisonTeamModal = function(field, label) {
+  _saiActiveField = field;
+  _saiActiveType  = 'team';
+  gEl('saiTeamModalTitle').textContent = label.toUpperCase();
+  _saiTeamRenderList();
+  gEl('saiTeamModal').classList.add('open');
+};
+
+window.closeSaisonModal = function() {
+  gEl('saiDrvModal').classList.remove('open');
+  gEl('saiTeamModal').classList.remove('open');
+  _saiActiveField = null;
+  _saiActiveType  = null;
+};
+
+// Fermer en cliquant outside
+document.addEventListener('click', e => {
+  if (e.target === gEl('saiDrvModal'))  closeSaisonModal();
+  if (e.target === gEl('saiTeamModal')) closeSaisonModal();
+});
+
+// ── Pilotes déjà pris dans le groupe saison pilotes ──
+function _saiDrvTaken(exceptField) {
+  return ['drv-p1','drv-p2','drv-p3']
+    .filter(f => f !== exceptField)
+    .map(f => { const el=gEl(_SAI_DRV_MAP[f]); return el?el.value:''; })
+    .filter(v => v !== '');
+}
+
+// ── Écuries déjà prises ──
+function _saiTeamTaken(exceptField) {
+  return ['team-p1','team-p2','team-p3']
+    .filter(f => f !== exceptField)
+    .map(f => { const el=gEl(_SAI_TEAM_MAP[f]); return el?el.value:''; })
+    .filter(v => v !== '');
+}
+
+// ── Rendu liste pilotes saison ──
+window._saiDrvRenderList = function(filter) {
+  const q = (filter||'').toLowerCase();
+  const taken = _saiDrvTaken(_saiActiveField);
+  const currentVal = _saiActiveField ? (gEl(_SAI_DRV_MAP[_saiActiveField])?.value||'') : '';
+  const list = gEl('saiDrvList'); if (!list) return;
+  list.innerHTML = F1_TEAMS_2026.map(t => {
+    const drvs = F1_DRIVERS_2026.filter(d =>
+      d.team === t.name &&
+      (!q || d.name.toLowerCase().includes(q) || d.abbr.toLowerCase().includes(q) || String(d.num).includes(q))
+    );
+    if (!drvs.length) return '';
+    return `<div>
+      <div class="pb-team-lbl" style="color:${t.color}">
+        <span style="width:16px;height:2px;background:${t.color};border-radius:1px;display:inline-block"></span>
+        ${t.name}
+      </div>
+      ${drvs.map(d => {
+        const isCurrent = String(d.num) === String(currentVal);
+        const isTaken   = taken.includes(String(d.num)) && !isCurrent;
+        return `<div class="pb-drv-row ${isTaken?'pb-drv-taken':''} ${isCurrent?'pb-drv-current':''}"
+          onclick="saiSelectDriver(${d.num})">
+          <div class="pb-drv-helmet" style="background:${t.color}">${d.abbr.slice(0,2)}</div>
+          <div class="pb-drv-info">
+            <div class="pb-drv-name">${d.name}</div>
+            <div class="pb-drv-meta">#${d.num} · ${t.name}</div>
+          </div>
+          ${isCurrent ? `<span class="pb-drv-check" style="color:${t.color}">✓</span>` : ''}
+        </div>`;
+      }).join('')}
+    </div>`;
+  }).join('');
+};
+
+// ── Rendu liste écuries saison ──
+function _saiTeamRenderList() {
+  const taken = _saiTeamTaken(_saiActiveField);
+  const currentVal = _saiActiveField ? (gEl(_SAI_TEAM_MAP[_saiActiveField])?.value||'') : '';
+  const list = gEl('saiTeamList'); if (!list) return;
+  list.innerHTML = F1_TEAMS_2026.map(t => {
+    const isCurrent = t.id === currentVal;
+    const isTaken   = taken.includes(t.id) && !isCurrent;
+    return `<div class="pb-drv-row ${isTaken?'pb-drv-taken':''} ${isCurrent?'pb-drv-current':''}"
+      onclick="saiSelectTeam('${t.id}')">
+      <div class="pb-drv-helmet" style="background:${t.color};font-size:10px;letter-spacing:0">${t.abbr||t.name.slice(0,3).toUpperCase()}</div>
+      <div class="pb-drv-info">
+        <div class="pb-drv-name">${t.name}</div>
+      </div>
+      ${isCurrent ? `<span class="pb-drv-check" style="color:${t.color}">✓</span>` : ''}
+    </div>`;
+  }).join('');
+}
+
+// ── Sélectionner un pilote saison ──
+window.saiSelectDriver = function(num) {
+  if (!_saiActiveField) return;
+  const el = gEl(_SAI_DRV_MAP[_saiActiveField]);
+  if (el) { el.value = num; el.dispatchEvent(new Event('change')); }
+  _saiUpdateCard(_saiActiveField, 'drv');
+  closeSaisonModal();
+};
+
+// ── Sélectionner une écurie saison ──
+window.saiSelectTeam = function(teamId) {
+  if (!_saiActiveField) return;
+  const el = gEl(_SAI_TEAM_MAP[_saiActiveField]);
+  if (el) { el.value = teamId; el.dispatchEvent(new Event('change')); }
+  _saiUpdateCard(_saiActiveField, 'team');
+  closeSaisonModal();
+};
+
+// ── Mettre à jour une carte saison ──
+function _saiUpdateCard(field, type) {
+  const isTeam = type === 'team';
+  const map    = isTeam ? _SAI_TEAM_MAP : _SAI_DRV_MAP;
+  const cardId = `sai-pc-${field}`;
+  const card   = gEl(cardId); if (!card) return;
+  const selId  = map[field];
+  const val    = gEl(selId)?.value || '';
+
+  if (!val) {
+    card.classList.remove('pb-filled');
+    card.style.removeProperty('--pc-color');
+    card.style.removeProperty('--pc-bg');
+    card.innerHTML = '<span class="pb-pod-empty">Choisir</span>';
+    return;
+  }
+
+  let color = '#888', bg = 'rgba(128,128,128,.08)', label = '', sub = '';
+  if (isTeam) {
+    const t = F1_TEAMS_2026.find(t => t.id === val);
+    if (t) { color = t.color; bg = t.bg || `${t.color}18`; label = t.abbr || t.name.slice(0,3).toUpperCase(); sub = t.name; }
+  } else {
+    const d = F1_DRIVERS_2026.find(d => String(d.num) === String(val));
+    if (d) {
+      const t = F1_TEAMS_2026.find(t => t.name === d.team);
+      color = t?.color || '#888'; bg = t?.bg || `${color}18`;
+      label = d.abbr; sub = d.name;
+    }
+  }
+
+  card.classList.add('pb-filled');
+  card.style.setProperty('--pc-color', color);
+  card.style.setProperty('--pc-bg', bg);
+  card.innerHTML = `<div style="display:flex;flex-direction:column;align-items:center;gap:2px;width:100%">
+    <div style="font-family:'Barlow Condensed',sans-serif;font-size:17px;font-weight:700;color:${color};letter-spacing:1px">${label}</div>
+    <div style="font-size:9px;color:var(--muted-hi);text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%">${sub}</div>
+  </div>`;
+}
+
+// ── Sync toutes les cartes saison (appelée après chargement des paris) ──
+function _saiSyncAllCards() {
+  ['drv-p1','drv-p2','drv-p3'].forEach(f => _saiUpdateCard(f,'drv'));
+  ['team-p1','team-p2','team-p3'].forEach(f => _saiUpdateCard(f,'team'));
 }
 
 // ─── Bonus checker ──────────────────────────────────────────
@@ -5381,31 +5707,30 @@ window.checkSaisonBonus = () => {
   const tOk = t1&&t2&&t3&&t1!==t2&&t1!==t3&&t2!==t3;
   const bDrv = gEl('saiDrvBonusTxt'); if(bDrv) bDrv.textContent = dOk ? '+25 pts ACTIVÉ ✓' : '+25 pts';
   const bTeam = gEl('saiTeamBonusTxt'); if(bTeam) bTeam.textContent = tOk ? '+10 pts ACTIVÉ ✓' : '+10 pts';
-  // Afficher le bouton valider si au moins un pari rempli
-  const hasAny = d1||d2||d3||t1||t2||t3;
-  const wrap = gEl('saisonSubmitWrap');
-  if (wrap && getSaisonState() === 'open') wrap.style.display = hasAny ? 'block' : 'none';
 };
 
-// ─── Appliquer l'état du formulaire ──────────────────────────
+// ─── Appliquer l'état du formulaire — miroir exact de _applyBetsFormState ──
 function _applySaisonFormState() {
   const state = getSaisonState();
   const fields = ['sai-drv-p1','sai-drv-p2','sai-drv-p3','sai-team-p1','sai-team-p2','sai-team-p3'];
-  if (state === 'open' && !mySaisonBets?.locked) {
-    fields.forEach(id => { const el=gEl(id); if(el) el.disabled=false; });
-    if (mySaisonBets) {
-      gEl('saisonResetBar').style.display = 'block';
-      gEl('saisonSubmitWrap').style.display = 'block';
-    } else {
-      gEl('saisonResetBar').style.display = 'none';
-      checkSaisonBonus();
-    }
-  } else {
-    // Fermé ou verrouillé après validation
+  const has = !!mySaisonBets;
+
+  if (state !== 'open') {
+    // Fermé : tout verrouiller, masquer les deux boutons
     fields.forEach(id => { const el=gEl(id); if(el) el.disabled=true; });
-    gEl('saisonResetBar').style.display = 'none';
+    ['sai-pc-drv-p1','sai-pc-drv-p2','sai-pc-drv-p3','sai-pc-team-p1','sai-pc-team-p2','sai-pc-team-p3']
+      .forEach(id => { const el=gEl(id); if(el){ el.style.pointerEvents='none'; el.style.opacity='.5'; } });
     gEl('saisonSubmitWrap').style.display = 'none';
+    gEl('saisonResetBar').style.display = 'none';
+    return;
   }
+
+  // Ouvert
+  fields.forEach(id => { const el=gEl(id); if(el) el.disabled=false; });
+  ['sai-pc-drv-p1','sai-pc-drv-p2','sai-pc-drv-p3','sai-pc-team-p1','sai-pc-team-p2','sai-pc-team-p3']
+    .forEach(id => { const el=gEl(id); if(el){ el.style.pointerEvents=''; el.style.opacity=''; } });
+  gEl('saisonSubmitWrap').style.display = 'block';
+  gEl('saisonResetBar').style.display = has ? 'block' : 'none';
 }
 
 // ─── Soumettre les paris saison ──────────────────────────────
@@ -5415,24 +5740,23 @@ window.submitSaisonBets = async () => {
   const d1=gEl('sai-drv-p1').value, d2=gEl('sai-drv-p2').value, d3=gEl('sai-drv-p3').value;
   const t1=gEl('sai-team-p1').value, t2=gEl('sai-team-p2').value, t3=gEl('sai-team-p3').value;
   if (!d1||!d2||!d3||!t1||!t2||!t3) {
-    notif('⚠️ Remplis tous les podiums avant de valider'); 
-    if(btn){btn.textContent='VALIDER MES PARIS SAISON ▶';btn.disabled=false;}
+    notif('⚠️ Remplis tous les podiums avant de valider');
+    if(btn){btn.textContent='VALIDER MES PARIS ▶';btn.disabled=false;}
     return;
   }
-  if (d1===d2||d1===d3||d2===d3) { notif('⚠️ Pilotes en double !'); if(btn){btn.textContent='VALIDER MES PARIS SAISON ▶';btn.disabled=false;} return; }
-  if (t1===t2||t1===t3||t2===t3) { notif('⚠️ Écuries en double !'); if(btn){btn.textContent='VALIDER MES PARIS SAISON ▶';btn.disabled=false;} return; }
+  if (d1===d2||d1===d3||d2===d3) { notif('⚠️ Pilotes en double !'); if(btn){btn.textContent='VALIDER MES PARIS ▶';btn.disabled=false;} return; }
+  if (t1===t2||t1===t3||t2===t3) { notif('⚠️ Écuries en double !'); if(btn){btn.textContent='VALIDER MES PARIS ▶';btn.disabled=false;} return; }
   const bets = { uid:CU.id, name:CU.name, ts:Date.now(), locked:false,
     drv:{p1:d1,p2:d2,p3:d3}, team:{p1:t1,p2:t2,p3:t3} };
   try {
     await db.collection('seasonbets').doc(CU.id).set(bets);
     mySaisonBets = bets;
     notif('🏆 Paris saison enregistrés !');
-    gEl('saisonResetBar').style.display = 'block';
-    gEl('saisonSubmitWrap').style.display = 'block';
-    if(btn){btn.textContent='✓ Enregistrés';btn.disabled=false;}
+    if(btn){btn.textContent='VALIDER MES PARIS ▶';btn.disabled=false;}
+    _applySaisonFormState(); // reset visible, submit visible
   } catch(e) {
     notif('❌ Erreur : ' + e.message);
-    if(btn){btn.textContent='VALIDER MES PARIS SAISON ▶';btn.disabled=false;}
+    if(btn){btn.textContent='VALIDER MES PARIS ▶';btn.disabled=false;}
   }
 };
 
@@ -5444,10 +5768,10 @@ window.resetSaisonBets = async () => {
     mySaisonBets = null;
     ['sai-drv-p1','sai-drv-p2','sai-drv-p3','sai-team-p1','sai-team-p2','sai-team-p3']
       .forEach(id => { const el=gEl(id); if(el){el.disabled=false;el.value='';} });
+    _saiSyncAllCards();
     checkSaisonBonus();
-    gEl('saisonResetBar').style.display = 'none';
-    gEl('saisonSubmitWrap').style.display = 'none';
     notif('🔄 Paris saison réinitialisés');
+    _applySaisonFormState(); // reset masqué, submit visible
   } catch(e) { notif('❌ Erreur : ' + e.message); }
 };
 
@@ -5477,16 +5801,16 @@ function renderSaisonStatusBar() {
       const cntd = d > 0 ? `${d}j ${pad(h)}:${pad(m)}:${pad(s)}` : `${pad(h)}:${pad(m)}:${pad(s)}`;
       html = `<div class="bets-status-bar open">
         <div>
-          <div class="bets-status-lbl">🟢 Paris saison ouverts</div>
-          <div style="font-size:10px;color:var(--muted);margin-top:2px">Ferme avant les qualifs · ${gpLabel}</div>
+          <div class="bets-status-lbl">🟢 PARIS SAISON OUVERTS</div>
+          <div style="font-size:10px;color:var(--muted-hi);margin-top:2px">${gpLabel} · ferme avant les qualifs</div>
         </div>
         <div class="bets-status-cntd">${cntd}</div>
       </div>`;
     } else {
       html = `<div class="bets-status-bar closed">
         <div>
-          <div class="bets-status-lbl">🔒 Paris saison fermés</div>
-          <div style="font-size:10px;color:var(--muted);margin-top:2px">${gpLabel} · Clôture définitive</div>
+          <div class="bets-status-lbl">🔒 PARIS SAISON FERMÉS</div>
+          <div style="font-size:10px;color:var(--muted-hi);margin-top:2px">${gpLabel} · Clôture définitive</div>
         </div>
         <div class="bets-status-cntd" style="font-size:11px">FERMÉ</div>
       </div>`;
@@ -6552,24 +6876,47 @@ if(document.readyState === 'loading'){
   </div>
 </div>
 
-<div id="guideModal" style="display:none;position:fixed;inset:0;z-index:800;background:rgba(0,0,0,.85);backdrop-filter:blur(8px);overflow:hidden;">
+<!-- Modal pilotes saison — réutilise pbModal avec flag saison -->
+<div class="pb-modal" id="saiDrvModal">
+  <div class="pb-sheet">
+    <div class="pb-sheet-hdr">
+      <div class="pb-sheet-title" id="saiDrvModalTitle">CHOISIR UN PILOTE</div>
+      <button class="pb-sheet-close" onclick="closeSaisonModal()">✕</button>
+    </div>
+    <input class="pb-sheet-search" id="saiDrvSearch" placeholder="🔍 Rechercher un pilote…" oninput="_saiDrvRenderList(this.value)">
+    <div class="pb-sheet-list" id="saiDrvList"></div>
+  </div>
+</div>
+
+<!-- Modal écuries saison -->
+<div class="pb-modal" id="saiTeamModal">
+  <div class="pb-sheet">
+    <div class="pb-sheet-hdr">
+      <div class="pb-sheet-title" id="saiTeamModalTitle">CHOISIR UNE ÉCURIE</div>
+      <button class="pb-sheet-close" onclick="closeSaisonModal()">✕</button>
+    </div>
+    <div class="pb-sheet-list" id="saiTeamList"></div>
+  </div>
+</div>
+
+<div id="guideModal" style="display:none;position:fixed;inset:0;z-index:800;background:rgba(0,0,0,.88);backdrop-filter:blur(16px);overflow:hidden;">
   <div style="height:100%;display:flex;flex-direction:column;max-width:680px;margin:0 auto;">
 
     <!-- Header -->
-    <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 18px;background:#0a0a10;border-bottom:1px solid #E8002D;flex-shrink:0;">
-      <div style="font-family:'Orbitron',monospace;font-size:13px;font-weight:900;letter-spacing:3px;color:#E8002D;">F1<span style="color:#e8e8f0">PARIBOX</span> <span style="color:#FFD700;font-size:10px;letter-spacing:2px;">GUIDE 2026</span></div>
-      <button onclick="closeGuide()" style="background:none;border:1px solid rgba(255,255,255,.15);border-radius:3px;color:#6b6b80;font-size:16px;padding:4px 10px;cursor:pointer;transition:all .2s;" onmouseover="this.style.borderColor='#E8002D';this.style.color='#E8002D'" onmouseout="this.style.borderColor='rgba(255,255,255,.15)';this.style.color='#6b6b80'">✕</button>
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 18px;background:rgba(6,6,12,0.98);border-bottom:1px solid rgba(232,0,45,.4);flex-shrink:0;backdrop-filter:blur(20px);">
+      <div style="font-family:'Orbitron',monospace;font-size:13px;font-weight:900;letter-spacing:3px;color:#E8002D;text-shadow:0 0 20px rgba(232,0,45,0.4);">F1<span style="color:#EEF0F8">PARIBOX</span> <span style="color:#F5C842;font-size:10px;letter-spacing:2px;">GUIDE 2026</span></div>
+      <button onclick="closeGuide()" style="background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.12);border-radius:7px;color:#9496B4;font-size:16px;padding:4px 10px;cursor:pointer;transition:all .2s;" onmouseover="this.style.borderColor='rgba(232,0,45,.5)';this.style.color='#E8002D'" onmouseout="this.style.borderColor='rgba(255,255,255,.12)';this.style.color='#9496B4'">✕</button>
     </div>
 
     <!-- Nav chapitres -->
-    <div id="guideNavWrap" style="flex-shrink:0;background:#0a0a10;border-bottom:1px solid rgba(255,255,255,.07);padding:10px 14px;">
+    <div id="guideNavWrap" style="flex-shrink:0;background:rgba(9,9,16,0.95);border-bottom:1px solid rgba(255,255,255,.06);padding:10px 14px;">
       <div id="guideNav" style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;"></div>
     </div>
     <div style="display:none">
     </div>
 
     <!-- Contenu scrollable -->
-    <div id="guideContent" style="flex:1;overflow-y:auto;padding:20px 18px 40px;background:#050508;">
+    <div id="guideContent" style="flex:1;overflow-y:auto;padding:20px 18px 40px;background:var(--bg);">
     </div>
 
   </div>
@@ -6762,37 +7109,38 @@ function buildGuideContent(id) {
 const guideStyles = [
   "#guideContent { font-family: 'Rajdhani', sans-serif; }",
   ".g-hero { text-align:center; padding:24px 0 20px; }",
-  ".g-hero-title { font-family:'Orbitron',monospace; font-size:18px; font-weight:900; color:#e8e8f0; letter-spacing:2px; }",
-  ".g-hero-sub { font-size:13px; color:#6b6b80; margin-top:6px; }",
+  ".g-hero-title { font-family:'Orbitron',monospace; font-size:18px; font-weight:900; color:#EEF0F8; letter-spacing:2px; }",
+  ".g-hero-sub { font-size:13px; color:#9496B4; margin-top:6px; }",
   ".g-steps { display:flex; flex-direction:column; gap:10px; margin:16px 0; }",
-  ".g-step { display:flex; align-items:flex-start; gap:12px; background:#12121e; border-radius:4px; padding:12px 14px; }",
+  ".g-step { display:flex; align-items:flex-start; gap:12px; background:linear-gradient(135deg,#13131F,#0e0e1a); border:1px solid rgba(255,255,255,0.06); border-radius:10px; padding:12px 14px; }",
   ".g-step-num { width:26px; height:26px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-family:'Orbitron',monospace; font-size:11px; font-weight:900; flex-shrink:0; }",
-  ".g-step-text { font-size:13px; color:#e8e8f0; line-height:1.5; padding-top:3px; }",
+  ".g-step-text { font-size:13px; color:#EEF0F8; line-height:1.5; padding-top:3px; }",
   ".g-section-title { font-family:'Orbitron',monospace; font-size:10px; letter-spacing:3px; text-transform:uppercase; padding-left:8px; border-left:2px solid currentColor; margin-bottom:10px; }",
-  ".g-row { display:flex; align-items:center; gap:10px; background:#12121e; border-radius:4px; padding:10px 12px; margin-bottom:6px; }",
+  ".g-row { display:flex; align-items:center; gap:10px; background:linear-gradient(135deg,#13131F,#0e0e1a); border:1px solid rgba(255,255,255,.06); border-radius:8px; padding:10px 12px; margin-bottom:6px; transition:border-color .15s; }",
+  ".g-row:hover { border-color:rgba(255,255,255,.11); }",
   ".g-row-icon { font-size:18px; flex-shrink:0; width:28px; text-align:center; }",
   ".g-row-body { flex:1; min-width:0; }",
-  ".g-row-name { font-size:13px; font-weight:700; color:#e8e8f0; }",
-  ".g-row-desc { font-size:11px; color:#6b6b80; margin-top:1px; }",
+  ".g-row-name { font-size:13px; font-weight:700; color:#EEF0F8; }",
+  ".g-row-desc { font-size:11px; color:#9496B4; margin-top:1px; }",
   ".g-row-pts { font-family:'Orbitron',monospace; font-size:11px; font-weight:700; flex-shrink:0; text-align:right; }",
-  ".g-bonus-row { display:flex; align-items:center; background:#1a1500; border:1px solid rgba(255,215,0,.2); border-radius:4px; padding:10px 12px; margin-bottom:6px; font-size:13px; color:#e8e8f0; font-weight:600; }",
-  ".g-pos-chip { background:#12121e; border:1px solid rgba(255,255,255,.07); border-radius:4px; padding:6px 4px; text-align:center; font-family:'Orbitron',monospace; font-size:10px; color:#00D4FF; display:flex; flex-direction:column; gap:2px; }",
-  ".g-pos-chip span { font-size:8px; color:#6b6b80; font-family:'Rajdhani',sans-serif; }",
-  ".g-info { border:1px solid; border-radius:4px; padding:10px 12px; font-size:12px; color:#e8e8f0; line-height:1.5; margin:10px 0; display:flex; gap:8px; align-items:flex-start; }",
+  ".g-bonus-row { display:flex; align-items:center; background:rgba(26,21,0,0.8); border:1px solid rgba(245,200,66,.18); border-radius:8px; padding:10px 12px; margin-bottom:6px; font-size:13px; color:#EEF0F8; font-weight:600; }",
+  ".g-pos-chip { background:#13131F; border:1px solid rgba(255,255,255,.07); border-radius:6px; padding:6px 4px; text-align:center; font-family:'Orbitron',monospace; font-size:10px; color:#18C8FF; display:flex; flex-direction:column; gap:2px; }",
+  ".g-pos-chip span { font-size:8px; color:#9496B4; font-family:'Rajdhani',sans-serif; }",
+  ".g-info { border:1px solid; border-radius:8px; padding:10px 12px; font-size:12px; color:#EEF0F8; line-height:1.5; margin:10px 0; display:flex; gap:8px; align-items:flex-start; }",
   ".g-timeline-row { display:flex; align-items:center; gap:10px; padding:8px 0; border-bottom:1px solid rgba(255,255,255,.04); }",
   ".g-tl-dot { width:8px; height:8px; border-radius:50%; flex-shrink:0; }",
-  ".g-state-row { display:flex; gap:12px; align-items:flex-start; background:#12121e; border-radius:4px; padding:12px 14px; margin-bottom:6px; }",
+  ".g-state-row { display:flex; gap:12px; align-items:flex-start; background:#13131F; border:1px solid rgba(255,255,255,.06); border-radius:8px; padding:12px 14px; margin-bottom:6px; }",
   ".g-table { width:100%; border-collapse:collapse; font-size:12px; margin-top:6px; }",
-  ".g-table th { font-family:'Orbitron',monospace; font-size:9px; letter-spacing:2px; color:#6b6b80; text-align:left; padding:6px 10px; border-bottom:1px solid rgba(255,255,255,.08); }",
-  ".g-table td { padding:7px 10px; border-bottom:1px solid rgba(255,255,255,.04); color:#e8e8f0; }",
-  ".g-table tr:hover td { background:rgba(255,255,255,.02); }",
-  ".g-table .pts { font-family:'Orbitron',monospace; font-size:10px; color:#FFD700; font-weight:700; text-align:right; }",
-  ".g-nav-btn { background:rgba(255,255,255,.03); border:1px solid rgba(255,255,255,.08); border-radius:6px; color:#6b6b80; font-family:'Rajdhani',sans-serif; font-size:12px; font-weight:600; letter-spacing:.5px; padding:8px 6px; cursor:pointer; transition:all .2s; text-align:center; width:100%; display:flex; flex-direction:column; align-items:center; gap:3px; line-height:1.2; }",
+  ".g-table th { font-family:'Orbitron',monospace; font-size:9px; letter-spacing:2px; color:#9496B4; text-align:left; padding:6px 10px; border-bottom:1px solid rgba(255,255,255,.08); }",
+  ".g-table td { padding:7px 10px; border-bottom:1px solid rgba(255,255,255,.04); color:#EEF0F8; }",
+  ".g-table tr:hover td { background:rgba(255,255,255,.025); }",
+  ".g-table .pts { font-family:'Orbitron',monospace; font-size:10px; color:#F5C842; font-weight:700; text-align:right; }",
+  ".g-nav-btn { background:rgba(255,255,255,.03); border:1px solid rgba(255,255,255,.07); border-radius:8px; color:#9496B4; font-family:'Rajdhani',sans-serif; font-size:12px; font-weight:600; letter-spacing:.5px; padding:8px 6px; cursor:pointer; transition:all .2s; text-align:center; width:100%; display:flex; flex-direction:column; align-items:center; gap:3px; line-height:1.2; }",
   ".g-nav-btn .g-nav-icon { font-size:16px; }",
   ".g-nav-btn .g-nav-lbl { font-size:10px; }",
-  ".g-nav-btn.active { background:rgba(232,0,45,.15); border-color:rgba(232,0,45,.5); color:#fff; }",
-  ".g-nav-btn.active .g-nav-icon { filter: drop-shadow(0 0 4px rgba(232,0,45,.6)); }",
-  ".g-nav-btn:hover:not(.active) { background:rgba(255,255,255,.06); border-color:rgba(255,255,255,.2); color:#e8e8f0; }",
+  ".g-nav-btn.active { background:rgba(232,0,45,.12); border-color:rgba(232,0,45,.45); color:#fff; box-shadow:0 0 16px rgba(232,0,45,.1); }",
+  ".g-nav-btn.active .g-nav-icon { filter: drop-shadow(0 0 6px rgba(232,0,45,.7)); }",
+  ".g-nav-btn:hover:not(.active) { background:rgba(255,255,255,.055); border-color:rgba(255,255,255,.15); color:#EEF0F8; }",
 ].join("\n");
 
 function openGuide(chapterId) {
