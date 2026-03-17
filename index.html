@@ -265,13 +265,13 @@ header{position:sticky;top:0;z-index:100;background:rgba(6,6,12,0.92);border-bot
 /* Contenu carte vide */
 .pb-card-empty{font-size:12px;color:var(--muted);font-style:italic;}
 /* Podium row */
-.pb-podium-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;}
+.pb-podium-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;}
 .pb-podium-slot{}
-.pb-podium-rank{font-family:'Orbitron',monospace;font-size:9px;font-weight:700;margin-bottom:6px;letter-spacing:1px;}
+.pb-podium-rank{font-family:'Orbitron',monospace;font-size:8px;font-weight:700;margin-bottom:6px;letter-spacing:0.5px;word-break:break-word;line-height:1.3;}
 .pb-podium-rank.gold{color:var(--gold);}
 .pb-podium-rank.silver{color:var(--silver);}
 .pb-podium-rank.bronze{color:var(--bronze);}
-.pb-podium-card{background:var(--bg2);border:1.5px solid var(--border);border-radius:9px;min-height:72px;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;transition:all .18s;position:relative;overflow:hidden;-webkit-tap-highlight-color:transparent;}
+.pb-podium-card{background:var(--bg2);border:1.5px solid var(--border);border-radius:9px;min-height:68px;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;transition:all .18s;position:relative;overflow:hidden;-webkit-tap-highlight-color:transparent;}
 .pb-podium-card:hover{border-color:rgba(255,255,255,.18);}
 .pb-podium-card.pb-filled{border-color:var(--pc-color);background:var(--pc-bg);}
 .pb-podium-card::after{content:'';position:absolute;bottom:0;left:0;right:0;height:2px;background:var(--pc-color,transparent);opacity:0;}
@@ -1212,15 +1212,15 @@ header{position:sticky;top:0;z-index:100;background:rgba(6,6,12,0.92);border-bot
           </div>
           <div class="pb-podium-row">
             <div class="pb-podium-slot">
-              <div class="pb-podium-rank gold">🥇 Champion · +50</div>
+              <div class="pb-podium-rank gold">🥇 Champion<br><span style="font-size:8px;opacity:.7">+50 pts</span></div>
               <div class="pb-podium-card" id="sai-pc-drv-p1" onclick="openSaisonDriverModal('drv-p1','Champion Pilotes')"></div>
             </div>
             <div class="pb-podium-slot">
-              <div class="pb-podium-rank silver">🥈 2ème · +50</div>
+              <div class="pb-podium-rank silver">🥈 2ème<br><span style="font-size:8px;opacity:.7">+50 pts</span></div>
               <div class="pb-podium-card" id="sai-pc-drv-p2" onclick="openSaisonDriverModal('drv-p2','2ème Pilotes')"></div>
             </div>
             <div class="pb-podium-slot">
-              <div class="pb-podium-rank bronze">🥉 3ème · +50</div>
+              <div class="pb-podium-rank bronze">🥉 3ème<br><span style="font-size:8px;opacity:.7">+50 pts</span></div>
               <div class="pb-podium-card" id="sai-pc-drv-p3" onclick="openSaisonDriverModal('drv-p3','3ème Pilotes')"></div>
             </div>
           </div>
@@ -1270,15 +1270,15 @@ header{position:sticky;top:0;z-index:100;background:rgba(6,6,12,0.92);border-bot
           </div>
           <div class="pb-podium-row">
             <div class="pb-podium-slot">
-              <div class="pb-podium-rank gold">🥇 Champion · +30</div>
+              <div class="pb-podium-rank gold">🥇 Champion<br><span style="font-size:8px;opacity:.7">+30 pts</span></div>
               <div class="pb-podium-card" id="sai-pc-team-p1" onclick="openSaisonTeamModal('team-p1','Champion Écuries')"></div>
             </div>
             <div class="pb-podium-slot">
-              <div class="pb-podium-rank silver">🥈 2ème · +30</div>
+              <div class="pb-podium-rank silver">🥈 2ème<br><span style="font-size:8px;opacity:.7">+30 pts</span></div>
               <div class="pb-podium-card" id="sai-pc-team-p2" onclick="openSaisonTeamModal('team-p2','2ème Écuries')"></div>
             </div>
             <div class="pb-podium-slot">
-              <div class="pb-podium-rank bronze">🥉 3ème · +30</div>
+              <div class="pb-podium-rank bronze">🥉 3ème<br><span style="font-size:8px;opacity:.7">+30 pts</span></div>
               <div class="pb-podium-card" id="sai-pc-team-p3" onclick="openSaisonTeamModal('team-p3','3ème Écuries')"></div>
             </div>
           </div>
@@ -5190,16 +5190,16 @@ async function _loadRRResult(r) {
     const link = openF1Links[evType];
     html += `
     <div style="margin-bottom:10px;background:var(--bg3);border:1px solid var(--border);border-radius:10px;overflow:hidden">
-      <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:rgba(255,255,255,.02);border-bottom:1px solid var(--border);position:relative">
-        <div style="display:flex;align-items:center;gap:10px">
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:rgba(255,255,255,.02);border-bottom:1px solid var(--border)">
+        <div style="display:flex;align-items:center;gap:10px;flex:1">
           ${lbl.icon}
           <div>
             <div style="font-family:'Orbitron',monospace;font-size:10px;font-weight:700;letter-spacing:2px;color:${lbl.color}">${lbl.title}</div>
             <div style="font-size:11px;color:var(--muted-hi);margin-top:2px">${lbl.badge}</div>
           </div>
         </div>
-        <button onclick="showEventClassement(${r},'${evType}')" style="font-size:9px;color:var(--cyan);background:rgba(0,212,255,.05);border:1px solid rgba(0,212,255,.2);border-radius:4px;padding:3px 9px;cursor:pointer;font-family:'Orbitron',monospace;font-weight:700;letter-spacing:1px;position:absolute;left:0;right:0;margin:0 auto;width:fit-content">CLASSEMENT PILOTES</button>
-        <div style="font-family:'Orbitron',monospace;font-size:15px;font-weight:900;color:${evTotal > 0 ? 'var(--green)' : evTotal < 0 ? 'var(--red)' : 'var(--muted)'};min-width:44px;text-align:right">${evTotal >= 0 ? '+' : ''}${evTotal}</div>
+        <button onclick="showEventClassement(${r},'${evType}')" style="font-size:8px;color:var(--cyan);background:rgba(0,212,255,.05);border:1px solid rgba(0,212,255,.2);border-radius:4px;padding:3px 7px;cursor:pointer;font-family:'Orbitron',monospace;font-weight:700;letter-spacing:1px;flex-shrink:0;white-space:nowrap">CLASSEMENT</button>
+        <div style="font-family:'Orbitron',monospace;font-size:15px;font-weight:900;color:${evTotal > 0 ? 'var(--green)' : evTotal < 0 ? 'var(--red)' : 'var(--muted)'};min-width:36px;text-align:right;margin-left:8px">${evTotal >= 0 ? '+' : ''}${evTotal}</div>
       </div>
       <div class="res-rows">${rr_rows(evData.rows || [])}</div>
     </div>`;
