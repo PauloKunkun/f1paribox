@@ -3681,12 +3681,30 @@ window.showEventClassement = async function(round, eventType) {
       return;
     }
 
-    list.innerHTML = positions.map(p => {
+    // Compléter avec les pilotes manquants (DNF/DNS)
+    const classified = new Set(positions.map(p => p.driver_number));
+    const missing = F1_DRIVERS_2026.filter(d => !classified.has(d.num));
+
+    // Fetch la grille de départ pour distinguer DNF (a démarré) vs DNS (n'a pas démarré)
+    let gridNums = new Set();
+    try {
+      const skGrid = eventType === 'race' ? keys.qualiKey || keys.raceKey : sk;
+      const gr = await _fetchRetry(`https://api.openf1.org/v1/starting_grid?session_key=${skGrid}`);
+      if (gr) { const gd = await gr.json(); if (Array.isArray(gd)) gd.forEach(g => gridNums.add(g.driver_number)); }
+    } catch {}
+
+    const fullList = [
+      ...positions,
+      ...missing.map(d => ({ driver_number: d.num, position: null, status: gridNums.size ? (gridNums.has(d.num) ? 'DNF' : 'DNS') : '—' }))
+    ];
+
+    list.innerHTML = fullList.map(p => {
       const d = F1_DRIVERS_2026.find(x => x.num === p.driver_number);
       const t = d ? teamById(d.team) : null;
-      const posLabel = ['🥇','🥈','🥉'][p.position-1] || `P${p.position}`;
-      return `<div style="display:flex;align-items:center;gap:12px;padding:8px 4px;border-bottom:1px solid var(--border)">
-        <div style="font-family:'Orbitron',monospace;font-size:11px;font-weight:700;color:var(--muted);width:28px;text-align:center">${posLabel}</div>
+      const posLabel = p.position === null ? (p.status || '—') : (['🥇','🥈','🥉'][p.position-1] || `P${p.position}`);
+      const posColor = 'var(--muted)';
+      return `<div style="display:flex;align-items:center;gap:12px;padding:8px 4px;border-bottom:1px solid var(--border);opacity:${p.position === null ? '0.45' : '1'}">
+        <div style="font-family:'Orbitron',monospace;font-size:11px;font-weight:700;color:${posColor};width:28px;text-align:center">${posLabel}</div>
         <div style="width:4px;height:32px;border-radius:2px;background:${t?.color||'#555'};flex-shrink:0"></div>
         <div style="flex:1">
           <div style="font-size:14px;font-weight:600;color:var(--text)">${d ? d.name : '#'+p.driver_number}</div>
