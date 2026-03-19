@@ -865,7 +865,6 @@ header{position:sticky;top:0;z-index:100;background:rgba(6,6,12,0.92);border-bot
   <button class="tab"  id="tab-classement">🏆 Classement</button>
   <button class="tab"  id="tab-circuit">🗺️ Circuit</button>
   <button class="tab"  id="tab-calendrier">📅 Calendrier</button>
-  <button class="tab"  id="tab-news">📰 News</button>
   <button class="tab"  id="tab-profil">👤 Profil</button>
 </div>
 
@@ -904,7 +903,6 @@ header{position:sticky;top:0;z-index:100;background:rgba(6,6,12,0.92);border-bot
     <button class="tab" data-tab="classement">🏆 Classement</button>
     <button class="tab" data-tab="circuit">🗺️ Circuit</button>
     <button class="tab" data-tab="calendrier">📅 Calendrier</button>
-    <button class="tab" data-tab="news">📰 News</button>
     <button class="tab" data-tab="profil">👤 Profil</button>
   </div>
   <div class="sidebar-bottom">
@@ -1341,17 +1339,6 @@ header{position:sticky;top:0;z-index:100;background:rgba(6,6,12,0.92);border-bot
     <div class="sub-pane" id="respane-saison" style="padding-top:8px">
       <div id="seasonResultBox"></div>
     </div>
-  </section>
-
-  <!-- ── NEWS ── -->
-  <section id="section-news" class="section">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
-      <div class="bloc-title" style="margin-bottom:0">F1 NEWS · <span style="color:var(--red)">LIVE</span></div>
-      <button id="newsRefreshBtn" onclick="loadF1News(true)" style="display:none;background:rgba(0,212,255,.07);border:1px solid rgba(0,212,255,.2);color:var(--cyan);font-family:'Orbitron',monospace;font-size:9px;font-weight:700;letter-spacing:1px;padding:6px 12px;border-radius:6px;cursor:pointer">🔄 ACTUALISER</button>
-    </div>
-    <div id="newsStatus" style="font-size:11px;color:var(--muted);margin-bottom:10px;min-height:16px"></div>
-    <div id="newsList" style="display:flex;flex-direction:column;gap:12px"></div>
-    <div id="newsCacheInfo" style="font-size:10px;color:var(--muted);text-align:center;margin-top:14px"></div>
   </section>
 
   <!-- ── CLASSEMENT ── -->
@@ -2112,7 +2099,7 @@ function buildHelmetGrid(selectedId) {
     btn.type = 'button';
     btn.className = 'h-opt' + (h.id === selectedId ? ' active' : '');
     btn.style.borderColor = h.id === selectedId ? h.color : 'transparent';
-    btn.innerHTML = '<div style="width:56px;height:56px;background:var(--bg2);border-radius:10px;overflow:hidden">' + helmetSvgUnique(h.svg, h.id + '_g' + (_helmetUid++)) + '</div>'
+    btn.innerHTML = '<div style="width:56px;height:56px;background:var(--bg2);border-radius:10px;overflow:hidden">' + h.svg + '</div>'
       + '<div class="h-lbl">' + h.name + '</div>';
     btn.onclick = () => {
       grid.querySelectorAll('.h-opt').forEach(b => { b.classList.remove('active'); b.style.borderColor = 'transparent'; });
@@ -2124,20 +2111,11 @@ function buildHelmetGrid(selectedId) {
   });
 }
 
-// Rend un SVG casque en évitant les collisions d'IDs de dégradés
-function helmetSvgUnique(svg, suffix) {
-  // Remplace tous les id="xxx" et url(#xxx) par des versions suffixées
-  return svg
-    .replace(/\bid="([^"]+)"/g, (_, id) => `id="${id}_${suffix}"`)
-    .replace(/url\(#([^)]+)\)/g, (_, id) => `url(#${id}_${suffix})`);
-}
-let _helmetUid = 0;
-
 function renderHelmet(containerId, helmetId) {
   const el = document.getElementById(containerId);
   if (!el) return;
   const h = F1_HELMETS.find(x => x.id === helmetId) || F1_HELMETS[0];
-  el.innerHTML = helmetSvgUnique(h.svg, containerId.replace(/[^a-z0-9]/gi,''));
+  el.innerHTML = h.svg;
 }
 // signup emoji obsolète
 
@@ -3427,7 +3405,6 @@ window.goTab = name => {
   if(name==='resultats') { renderResults(); renderSeasonResult(); goResTab('gp'); }
   if(name==='paris') { startBetsStatusBar(); updateSubTabLock(); fillSaisonSelects(); renderSaisonStatusBar(); updateSaisonSubTabLock(); }
   if(name!=='paris') { if(_betsStatusInt){ clearInterval(_betsStatusInt); _betsStatusInt=null; } gEl('submitBar').style.display='none'; }
-  if(name==='news') { loadF1News(); }
 };
 
 let _subTabLockInt = null;
@@ -4781,8 +4758,7 @@ async function _loadRRAllPlayers(r) {
           <div style="font-size:16px">⏳</div>
           <div style="font-family:'Orbitron',monospace;font-size:9px;font-weight:700;letter-spacing:1px;color:rgba(255,195,0,.9)">PARIS DES JOUEURS (${betPlayers.length} JOUEURS)</div>
         </div>` + betPlayers.map((p, i) => {
-        const _hObj = (F1_HELMETS.find(x => x.id === (p.helmetId || F1_HELMETS[0].id)) || F1_HELMETS[0]);
-        const helmet = helmetSvgUnique(_hObj.svg, _hObj.id + '_bp' + i);
+        const helmet = (F1_HELMETS.find(x => x.id === (p.helmetId || F1_HELMETS[0].id)) || F1_HELMETS[0]).svg;
         const playerId = `rrp-${r}-${i}`;
         return `
           <div style="background:var(--bg3);border:1px solid ${p.isMe ? 'rgba(232,0,45,.4)' : 'var(--border)'};border-radius:4px;margin-bottom:6px;overflow:hidden">
@@ -4851,8 +4827,7 @@ async function _loadRRAllPlayers(r) {
     pane.innerHTML = `<div style="padding:8px 14px 12px">` + players.map((p, i) => {
       const sign = p.total >= 0 ? '+' : '';
       const col  = p.total > 0 ? 'var(--green)' : p.total === 0 ? 'var(--muted)' : 'var(--red)';
-      const _hObj2 = (F1_HELMETS.find(x => x.id === (p.helmetId || F1_HELMETS[0].id)) || F1_HELMETS[0]);
-      const helmet = helmetSvgUnique(_hObj2.svg, _hObj2.id + '_pl' + i);
+      const helmet = (F1_HELMETS.find(x => x.id === (p.helmetId || F1_HELMETS[0].id)) || F1_HELMETS[0]).svg;
       const playerId = `rrp-${r}-${i}`;
 
       const blocsHtml = EV_ORDER.map(evType => {
@@ -5571,131 +5546,6 @@ function calcReal(b,data){
 }
 
 /* ════════ LEADERBOARD ════════ */
-/* ════════ NEWS F1 ════════ */
-
-// ⚠️ Remplace par l'URL de ton Cloudflare Worker après déploiement
-const NEWS_WORKER_URL = 'https://f1paribox-news.administration-c95.workers.dev/news';
-const NEWS_CACHE_KEY = 'f1news_v1';
-const NEWS_CACHE_TTL = 3 * 60 * 60 * 1000; // 3h
-
-function _newsSetStatus(msg, type = '') {
-  const el = gEl('newsStatus');
-  if (!el) return;
-  el.textContent = msg;
-  el.style.color = type === 'error' ? 'var(--red)' : type === 'active' ? 'var(--cyan)' : 'var(--muted)';
-}
-
-function _newsFormatDate(str) {
-  try {
-    const d = new Date(str);
-    return d.toLocaleDateString('fr-FR', { day:'numeric', month:'short', hour:'2-digit', minute:'2-digit' });
-  } catch { return ''; }
-}
-
-function _newsGetTag(title, summary) {
-  const t = (title + summary).toLowerCase();
-  if (/race|course|gp|grand prix|qualif|qualify/.test(t)) return { bg:'rgba(232,0,45,.1)', color:'var(--red)', border:'rgba(232,0,45,.2)', label:'COURSE' };
-  if (/car|engine|tech|upgrade|develop|aero/.test(t)) return { bg:'rgba(0,212,255,.08)', color:'var(--cyan)', border:'rgba(0,212,255,.15)', label:'TECHNIQUE' };
-  if (/driver|pilote|contract|sign|transfer|seat/.test(t)) return { bg:'rgba(245,200,66,.08)', color:'var(--gold)', border:'rgba(245,200,66,.15)', label:'TRANSFERT' };
-  return { bg:'rgba(255,255,255,.04)', color:'var(--muted-hi)', border:'var(--border)', label:'NEWS' };
-}
-
-function _newsRenderArticles(articles) {
-  const list = gEl('newsList');
-  if (!list) return;
-  if (!articles.length) {
-    list.innerHTML = `<div style="text-align:center;padding:40px 20px;color:var(--muted)"><div style="font-size:32px;margin-bottom:10px">📡</div><div>Aucune news disponible</div></div>`;
-    return;
-  }
-  list.innerHTML = articles.map(a => {
-    const tag = _newsGetTag(a.title, a.summary || '');
-    const text = a.content || a.summary || '';
-    return `<div style="background:var(--bg3);border:1px solid var(--border);border-radius:12px;overflow:hidden">
-      <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-bottom:1px solid var(--border);background:rgba(255,255,255,.02)">
-        <span style="font-family:'Orbitron',monospace;font-size:9px;font-weight:700;letter-spacing:2px;color:var(--muted);background:var(--bg2);padding:3px 8px;border-radius:4px">${a.source}</span>
-        <span style="font-size:10px;color:var(--muted);margin-left:auto">${_newsFormatDate(a.date)}</span>
-      </div>
-      <div style="padding:14px 16px">
-        <span style="display:inline-block;font-family:'Orbitron',monospace;font-size:8px;font-weight:700;letter-spacing:1px;padding:2px 8px;border-radius:4px;margin-bottom:10px;background:${tag.bg};color:${tag.color};border:1px solid ${tag.border}">${tag.label}</span>
-        <div style="font-family:'Orbitron',monospace;font-size:11px;font-weight:700;letter-spacing:1px;color:var(--text);margin-bottom:10px;line-height:1.5">${a.title}</div>
-        ${text ? `<div style="font-family:'Rajdhani',sans-serif;font-size:14px;line-height:1.7;color:rgba(232,232,240,.8);margin-bottom:10px">${text}</div>` : ''}
-        ${a.link ? `<a href="${a.link}" target="_blank" style="font-family:'Orbitron',monospace;font-size:9px;font-weight:700;letter-spacing:1px;color:var(--cyan);text-decoration:none;opacity:.7">LIRE L'ARTICLE ↗</a>` : ''}
-      </div>
-    </div>`;
-  }).join('');
-}
-
-function _newsShowSkeletons() {
-  const list = gEl('newsList');
-  if (!list) return;
-  list.innerHTML = Array(4).fill(0).map(() => `
-    <div style="background:var(--bg3);border:1px solid var(--border);border-radius:12px;padding:16px">
-      <div style="height:9px;width:60px;background:var(--bg2);border-radius:4px;margin-bottom:12px;animation:pulse 1.4s infinite"></div>
-      <div style="height:12px;width:85%;background:var(--bg2);border-radius:4px;margin-bottom:8px;animation:pulse 1.4s infinite"></div>
-      <div style="height:10px;width:100%;background:var(--bg2);border-radius:4px;margin-bottom:6px;animation:pulse 1.4s infinite"></div>
-      <div style="height:10px;width:90%;background:var(--bg2);border-radius:4px;animation:pulse 1.4s infinite"></div>
-    </div>`).join('');
-}
-
-let _newsLoading = false;
-async function loadF1News(forceRefresh = false) {
-  if (_newsLoading) return;
-
-  // Vérifier cache sessionStorage
-  if (!forceRefresh) {
-    try {
-      const cached = JSON.parse(sessionStorage.getItem(NEWS_CACHE_KEY) || 'null');
-      if (cached && Date.now() - cached.ts < NEWS_CACHE_TTL) {
-        _newsRenderArticles(cached.articles);
-        const btn = gEl('newsRefreshBtn');
-        if (btn) btn.style.display = 'inline-block';
-        const ci = gEl('newsCacheInfo');
-        if (ci) ci.innerHTML = `Mis à jour le <span style="color:var(--cyan)">${_newsFormatDate(new Date(cached.ts))}</span>`;
-        _newsSetStatus('');
-        return;
-      }
-    } catch {}
-  }
-
-  // Vérifier que le Worker est configuré
-  if (NEWS_WORKER_URL.includes('TON_COMPTE')) {
-    _newsSetStatus('⚠️ Worker Cloudflare non configuré — voir instructions de déploiement', 'error');
-    gEl('newsList').innerHTML = `<div style="background:var(--bg3);border:1px solid rgba(245,200,66,.2);border-radius:12px;padding:20px 16px">
-      <div style="font-family:'Orbitron',monospace;font-size:10px;font-weight:700;color:var(--gold);margin-bottom:12px">📋 DÉPLOIEMENT REQUIS</div>
-      <div style="font-size:13px;color:var(--muted-hi);line-height:1.7">
-        Pour activer les news, déploie le Cloudflare Worker fourni avec le fichier <code style="color:var(--cyan)">cloudflare_worker.js</code> puis remplace <code style="color:var(--cyan)">NEWS_WORKER_URL</code> dans le code.
-      </div>
-    </div>`;
-    return;
-  }
-
-  _newsLoading = true;
-  _newsShowSkeletons();
-  _newsSetStatus('Récupération des flux RSS…', 'active');
-
-  try {
-    const res = await fetch(NEWS_WORKER_URL);
-    if (!res.ok) throw new Error('Worker error ' + res.status);
-    const data = await res.json();
-    if (data.error) throw new Error(data.error);
-
-    // Mettre en cache
-    sessionStorage.setItem(NEWS_CACHE_KEY, JSON.stringify({ ts: Date.now(), articles: data.articles }));
-
-    _newsRenderArticles(data.articles);
-    const btn = gEl('newsRefreshBtn');
-    if (btn) btn.style.display = 'inline-block';
-    const ci = gEl('newsCacheInfo');
-    if (ci) ci.innerHTML = `Mis à jour le <span style="color:var(--cyan)">${_newsFormatDate(new Date())}</span>`;
-    _newsSetStatus('');
-  } catch(e) {
-    _newsSetStatus('❌ ' + e.message, 'error');
-    gEl('newsList').innerHTML = `<div style="text-align:center;padding:40px;color:var(--muted)"><div style="font-size:28px;margin-bottom:10px">⚠️</div><div>${e.message}</div></div>`;
-  } finally {
-    _newsLoading = false;
-  }
-}
-
 function startLB(){
   if(unsubLB)unsubLB();
   unsubLB=onSnapshot(collection(db,'players'),snap=>{
@@ -5703,7 +5553,7 @@ function startLB(){
     players.sort((a,b)=>b.pts-a.pts);
     if(players.length===0){ gEl('leaderboard').innerHTML='<div class="loader"><div class="loader-txt">Aucun joueur</div></div>'; return; }
 
-    let _helIdx=0; const hel = p => { const ho=(F1_HELMETS.find(x=>x.id===(p.helmetId||F1_HELMETS[0].id))||F1_HELMETS[0]); return helmetSvgUnique(ho.svg, ho.id+'_sc'+(_helIdx++)); };
+    const hel = p => (F1_HELMETS.find(x=>x.id===(p.helmetId||F1_HELMETS[0].id))||F1_HELMETS[0]).svg;
     const meTag = p => p.isMe ? ' <span style="font-size:9px;color:var(--red);letter-spacing:1px">MOI</span>' : '';
     const subInfo = p => {
       const drv = p.favoriteDriver ? F1_DRIVERS_2026.find(x=>x.id===p.favoriteDriver) : null;
