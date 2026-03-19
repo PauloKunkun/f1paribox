@@ -865,6 +865,7 @@ header{position:sticky;top:0;z-index:100;background:rgba(6,6,12,0.92);border-bot
   <button class="tab"  id="tab-classement">🏆 Classement</button>
   <button class="tab"  id="tab-circuit">🗺️ Circuit</button>
   <button class="tab"  id="tab-calendrier">📅 Calendrier</button>
+  <button class="tab"  id="tab-news">📰 News</button>
   <button class="tab"  id="tab-profil">👤 Profil</button>
 </div>
 
@@ -903,6 +904,7 @@ header{position:sticky;top:0;z-index:100;background:rgba(6,6,12,0.92);border-bot
     <button class="tab" data-tab="classement">🏆 Classement</button>
     <button class="tab" data-tab="circuit">🗺️ Circuit</button>
     <button class="tab" data-tab="calendrier">📅 Calendrier</button>
+    <button class="tab" data-tab="news">📰 News</button>
     <button class="tab" data-tab="profil">👤 Profil</button>
   </div>
   <div class="sidebar-bottom">
@@ -1339,6 +1341,20 @@ header{position:sticky;top:0;z-index:100;background:rgba(6,6,12,0.92);border-bot
     <div class="sub-pane" id="respane-saison" style="padding-top:8px">
       <div id="seasonResultBox"></div>
     </div>
+  </section>
+
+  <!-- ── NEWS ── -->
+  <section id="section-news" class="section">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+      <div>
+        <div class="bloc-title" style="margin-bottom:2px">F1 NEWS · <span style="color:var(--red)">LIVE</span></div>
+        <div style="font-size:10px;color:var(--muted)">Actualités réécrites par Claude</div>
+      </div>
+      <button id="newsRefreshBtn" onclick="loadF1News(true)" style="display:none;background:rgba(0,212,255,.07);border:1px solid rgba(0,212,255,.2);color:var(--cyan);font-family:'Orbitron',monospace;font-size:9px;font-weight:700;letter-spacing:1px;padding:6px 12px;border-radius:6px;cursor:pointer">🔄 ACTUALISER</button>
+    </div>
+    <div id="newsStatus" style="font-size:11px;color:var(--muted);margin-bottom:10px;min-height:16px"></div>
+    <div id="newsList" style="display:flex;flex-direction:column;gap:12px"></div>
+    <div id="newsCacheInfo" style="font-size:10px;color:var(--muted);text-align:center;margin-top:14px"></div>
   </section>
 
   <!-- ── CLASSEMENT ── -->
@@ -3405,6 +3421,7 @@ window.goTab = name => {
   if(name==='resultats') { renderResults(); renderSeasonResult(); goResTab('gp'); }
   if(name==='paris') { startBetsStatusBar(); updateSubTabLock(); fillSaisonSelects(); renderSaisonStatusBar(); updateSaisonSubTabLock(); }
   if(name!=='paris') { if(_betsStatusInt){ clearInterval(_betsStatusInt); _betsStatusInt=null; } gEl('submitBar').style.display='none'; }
+  if(name==='news') { loadF1News(); }
 };
 
 let _subTabLockInt = null;
@@ -5546,41 +5563,200 @@ function calcReal(b,data){
 }
 
 /* ════════ LEADERBOARD ════════ */
+/* ════════ NEWS F1 ════════ */
+
+// ⚠️ Remplace par l'URL de ton Cloudflare Worker après déploiement
+const NEWS_WORKER_URL = 'https://f1paribox-news.TON_COMPTE.workers.dev/news';
+const NEWS_CACHE_KEY = 'f1news_v1';
+const NEWS_CACHE_TTL = 3 * 60 * 60 * 1000; // 3h
+
+function _newsSetStatus(msg, type = '') {
+  const el = gEl('newsStatus');
+  if (!el) return;
+  el.textContent = msg;
+  el.style.color = type === 'error' ? 'var(--red)' : type === 'active' ? 'var(--cyan)' : 'var(--muted)';
+}
+
+function _newsFormatDate(str) {
+  try {
+    const d = new Date(str);
+    return d.toLocaleDateString('fr-FR', { day:'numeric', month:'short', hour:'2-digit', minute:'2-digit' });
+  } catch { return ''; }
+}
+
+function _newsGetTag(title, content) {
+  const t = (title + content).toLowerCase();
+  if (/race|course|gp|grand prix|qualif|qualify/.test(t)) return { bg:'rgba(232,0,45,.1)', color:'var(--red)', border:'rgba(232,0,45,.2)', label:'COURSE' };
+  if (/car|engine|tech|upgrade|develop|aero/.test(t)) return { bg:'rgba(0,212,255,.08)', color:'var(--cyan)', border:'rgba(0,212,255,.15)', label:'TECHNIQUE' };
+  if (/driver|pilote|contract|sign|transfer|seat/.test(t)) return { bg:'rgba(245,200,66,.08)', color:'var(--gold)', border:'rgba(245,200,66,.15)', label:'TRANSFERT' };
+  return { bg:'rgba(255,255,255,.04)', color:'var(--muted-hi)', border:'var(--border)', label:'NEWS' };
+}
+
+function _newsRenderArticles(articles) {
+  const list = gEl('newsList');
+  if (!list) return;
+  if (!articles.length) {
+    list.innerHTML = `<div style="text-align:center;padding:40px 20px;color:var(--muted)"><div style="font-size:32px;margin-bottom:10px">📡</div><div>Aucune news disponible</div></div>`;
+    return;
+  }
+  list.innerHTML = articles.map(a => {
+    const tag = _newsGetTag(a.title, a.content);
+    return `<div style="background:var(--bg3);border:1px solid var(--border);border-radius:12px;overflow:hidden">
+      <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-bottom:1px solid var(--border);background:rgba(255,255,255,.02)">
+        <span style="font-family:'Orbitron',monospace;font-size:9px;font-weight:700;letter-spacing:2px;color:var(--muted);background:var(--bg2);padding:3px 8px;border-radius:4px">${a.source}</span>
+        <span style="font-size:10px;color:var(--muted);margin-left:auto">${_newsFormatDate(a.date)}</span>
+      </div>
+      <div style="padding:14px 16px">
+        <span style="display:inline-block;font-family:'Orbitron',monospace;font-size:8px;font-weight:700;letter-spacing:1px;padding:2px 8px;border-radius:4px;margin-bottom:10px;background:${tag.bg};color:${tag.color};border:1px solid ${tag.border}">${tag.label}</span>
+        <div style="font-family:'Orbitron',monospace;font-size:11px;font-weight:700;letter-spacing:1px;color:var(--text);margin-bottom:10px;line-height:1.5">${a.title}</div>
+        <div style="font-family:'Rajdhani',sans-serif;font-size:14px;line-height:1.7;color:rgba(232,232,240,.8)">${a.content}</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function _newsShowSkeletons() {
+  const list = gEl('newsList');
+  if (!list) return;
+  list.innerHTML = Array(4).fill(0).map(() => `
+    <div style="background:var(--bg3);border:1px solid var(--border);border-radius:12px;padding:16px">
+      <div style="height:9px;width:60px;background:var(--bg2);border-radius:4px;margin-bottom:12px;animation:pulse 1.4s infinite"></div>
+      <div style="height:12px;width:85%;background:var(--bg2);border-radius:4px;margin-bottom:8px;animation:pulse 1.4s infinite"></div>
+      <div style="height:10px;width:100%;background:var(--bg2);border-radius:4px;margin-bottom:6px;animation:pulse 1.4s infinite"></div>
+      <div style="height:10px;width:90%;background:var(--bg2);border-radius:4px;animation:pulse 1.4s infinite"></div>
+    </div>`).join('');
+}
+
+let _newsLoading = false;
+async function loadF1News(forceRefresh = false) {
+  if (_newsLoading) return;
+
+  // Vérifier cache sessionStorage
+  if (!forceRefresh) {
+    try {
+      const cached = JSON.parse(sessionStorage.getItem(NEWS_CACHE_KEY) || 'null');
+      if (cached && Date.now() - cached.ts < NEWS_CACHE_TTL) {
+        _newsRenderArticles(cached.articles);
+        const btn = gEl('newsRefreshBtn');
+        if (btn) btn.style.display = 'inline-block';
+        const ci = gEl('newsCacheInfo');
+        if (ci) ci.innerHTML = `Mis à jour le <span style="color:var(--cyan)">${_newsFormatDate(new Date(cached.ts))}</span>`;
+        _newsSetStatus('');
+        return;
+      }
+    } catch {}
+  }
+
+  // Vérifier que le Worker est configuré
+  if (NEWS_WORKER_URL.includes('TON_COMPTE')) {
+    _newsSetStatus('⚠️ Worker Cloudflare non configuré — voir instructions de déploiement', 'error');
+    gEl('newsList').innerHTML = `<div style="background:var(--bg3);border:1px solid rgba(245,200,66,.2);border-radius:12px;padding:20px 16px">
+      <div style="font-family:'Orbitron',monospace;font-size:10px;font-weight:700;color:var(--gold);margin-bottom:12px">📋 DÉPLOIEMENT REQUIS</div>
+      <div style="font-size:13px;color:var(--muted-hi);line-height:1.7">
+        Pour activer les news, déploie le Cloudflare Worker fourni avec le fichier <code style="color:var(--cyan)">cloudflare_worker.js</code> puis remplace <code style="color:var(--cyan)">NEWS_WORKER_URL</code> dans le code.
+      </div>
+    </div>`;
+    return;
+  }
+
+  _newsLoading = true;
+  _newsShowSkeletons();
+  _newsSetStatus('Récupération des flux RSS…', 'active');
+
+  try {
+    const res = await fetch(NEWS_WORKER_URL);
+    if (!res.ok) throw new Error('Worker error ' + res.status);
+    const data = await res.json();
+    if (data.error) throw new Error(data.error);
+
+    // Mettre en cache
+    sessionStorage.setItem(NEWS_CACHE_KEY, JSON.stringify({ ts: Date.now(), articles: data.articles }));
+
+    _newsRenderArticles(data.articles);
+    const btn = gEl('newsRefreshBtn');
+    if (btn) btn.style.display = 'inline-block';
+    const ci = gEl('newsCacheInfo');
+    if (ci) ci.innerHTML = `Mis à jour le <span style="color:var(--cyan)">${_newsFormatDate(new Date())}</span>`;
+    _newsSetStatus('');
+  } catch(e) {
+    _newsSetStatus('❌ ' + e.message, 'error');
+    gEl('newsList').innerHTML = `<div style="text-align:center;padding:40px;color:var(--muted)"><div style="font-size:28px;margin-bottom:10px">⚠️</div><div>${e.message}</div></div>`;
+  } finally {
+    _newsLoading = false;
+  }
+}
+
 function startLB(){
   if(unsubLB)unsubLB();
   unsubLB=onSnapshot(collection(db,'players'),snap=>{
     const players=[]; snap.forEach(d=>{const data=d.data();if(!data.name)return;players.push({...data,id:d.id,isMe:d.id===CU.id});});
     players.sort((a,b)=>b.pts-a.pts);
-    const M=['🥇','🥈','🥉'], C=['rgba(0,212,255,.2)','rgba(0,255,135,.18)','rgba(255,128,0,.18)','rgba(150,90,255,.18)','rgba(255,50,80,.12)'];
-    const maxPts = players.length ? (players[0].pts||0) : 1;
-    const barColors = ['var(--gold)','var(--silver)','var(--bronze)','var(--cyan)','rgba(150,90,255,.9)'];
-    gEl('leaderboard').innerHTML=players.length===0
-      ?'<div class="loader"><div class="loader-txt">Aucun joueur</div></div>'
-      :players.map((p,i)=>{
-        const helmet = (F1_HELMETS.find(x=>x.id===(p.helmetId||F1_HELMETS[0].id))||F1_HELMETS[0]).svg;
-        const pts = p.pts||0;
-        const pct = maxPts > 0 ? Math.round((pts/maxPts)*100) : 0;
-        const barColor = barColors[Math.min(i, barColors.length-1)];
-        const drv = p.favoriteDriver ? F1_DRIVERS_2025.find(x=>x.id===p.favoriteDriver) : null;
-        const team = p.favoriteTeam ? F1_TEAMS_2025.find(x=>x.id===p.favoriteTeam) : null;
-        const sub = [
-          drv ? `<span style="font-weight:700;color:${teamColor(drv.team)}">${drv.abbr}</span>` : '',
-          team ? `<span style="color:${team.color}">${team.name}</span>` : '',
-          (p.races||0) > 0 ? `<span>${p.races} GP</span>` : ''
-        ].filter(Boolean).join('<span style="opacity:.3"> · </span>');
-        return `<div class="lb-item ${p.isMe?'me':''} ${i===0?'r1-item':''}">
-          <div class="lb-rank ${i<3?'r'+(i+1):''}">${i<3?M[i]:i+1}</div>
-          <div class="lb-av" style="width:44px;height:44px;border-radius:10px;overflow:hidden;flex-shrink:0;background:var(--bg2)">${helmet}</div>
-          <div class="lb-info">
-            <div class="lb-name">${p.name}${p.isMe?' <span style="font-size:9px;color:var(--red);letter-spacing:1px">MOI</span>':''}</div>
-            ${sub ? `<div class="lb-sub">${sub}</div>` : ''}
-            <div class="lb-bar-wrap"><div class="lb-bar" style="width:${pct}%;background:${barColor}"></div></div>
+    if(players.length===0){ gEl('leaderboard').innerHTML='<div class="loader"><div class="loader-txt">Aucun joueur</div></div>'; return; }
+
+    const hel = p => (F1_HELMETS.find(x=>x.id===(p.helmetId||F1_HELMETS[0].id))||F1_HELMETS[0]).svg;
+    const meTag = p => p.isMe ? ' <span style="font-size:9px;color:var(--red);letter-spacing:1px">MOI</span>' : '';
+    const subInfo = p => {
+      const drv = p.favoriteDriver ? F1_DRIVERS_2026.find(x=>x.id===p.favoriteDriver) : null;
+      const team = p.favoriteTeam ? F1_TEAMS_2026.find(x=>x.id===p.favoriteTeam) : null;
+      const parts = [
+        drv  ? `<span style="color:${teamColor(drv.team)};font-weight:700">${drv.abbr}</span>` : '',
+        team ? `<span style="color:${team.color}">${team.name}</span>` : '',
+        (p.races||0) > 0 ? `<span>${p.races} GP</span>` : ''
+      ].filter(Boolean);
+      return parts.join('<span style="color:#333355;margin:0 3px">·</span>');
+    };
+
+    const top3 = players.slice(0,3);
+    const medalColors = ['#F5C842','#C0C0C0','#CD7F32'];
+    const borderColors = ['rgba(245,200,66,.35)','rgba(192,192,192,.2)','rgba(205,127,50,.2)'];
+    const barHeights = [130, 90, 70];
+    const avatarSizes = [46, 38, 34];
+    const medals = ['🥇','🥈','🥉'];
+    const labels = ['1er','2ème','3ème'];
+    const ptsSize = [22, 18, 16];
+    const visualOrder = [1, 0, 2];
+
+    let podiumHtml = `<div style="display:flex;align-items:flex-end;gap:6px;height:220px;margin-bottom:10px">`;
+    visualOrder.forEach(idx => {
+      const p = top3[idx];
+      if (!p) { podiumHtml += `<div style="flex:1"></div>`; return; }
+      const sz = avatarSizes[idx];
+      const meBorder = p.isMe ? `border-color:rgba(232,0,45,.5);` : '';
+      podiumHtml += `
+        <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end">
+          <div style="width:${sz}px;height:${sz}px;border-radius:${idx===0?9:8}px;background:var(--bg2);overflow:hidden;margin-bottom:6px;border:1px solid ${borderColors[idx]};${meBorder}">${hel(p)}</div>
+          <div style="font-size:${idx===0?13:12}px;font-weight:700;text-align:center;margin-bottom:2px;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding:0 4px">${p.name}${meTag(p)}</div>
+          <div style="font-size:9px;color:var(--muted-hi);margin-bottom:5px;text-align:center;padding:0 2px">${subInfo(p)}</div>
+          <div style="width:100%;background:var(--bg3);border-radius:8px 8px 0 0;border:1px solid ${borderColors[idx]};border-bottom:none;padding:10px 6px;text-align:center;height:${barHeights[idx]}px;display:flex;flex-direction:column;align-items:center;justify-content:center;${meBorder}">
+            <div style="font-size:10px;color:${medalColors[idx]};margin-bottom:5px;font-family:'Orbitron',monospace;font-weight:700;letter-spacing:1px">${medals[idx]} ${labels[idx]}</div>
+            <div style="font-family:'Orbitron',monospace;font-size:${ptsSize[idx]}px;font-weight:900;color:${medalColors[idx]}">${p.pts||0}<span style="font-size:9px;color:var(--muted);font-weight:400"> pts</span></div>
           </div>
-          <div class="lb-pts">${pts}<span style="font-size:10px;color:var(--muted);font-weight:400"> pts</span></div>
         </div>`;
-      }).join('');
-    const rank=players.findIndex(p=>p.id===CU.id)+1;
-    gEl('stat-rank').textContent=rank>0?'#'+rank:'—';
+    });
+    podiumHtml += `</div>`;
+
+    let listHtml = '';
+    if (players.length > 3) {
+      listHtml = `<div style="background:var(--bg3);border:1px solid var(--border);border-radius:10px;overflow:hidden">`;
+      players.slice(3).forEach((p, i) => {
+        const rank = i + 4;
+        const meBg = p.isMe ? 'background:rgba(232,0,45,.05);border-left:3px solid var(--red);padding-left:11px;' : 'border-left:3px solid transparent;padding-left:11px;';
+        listHtml += `<div style="display:flex;align-items:center;gap:10px;padding:9px 14px 9px 0;border-bottom:1px solid rgba(255,255,255,.04);${meBg}">
+          <div style="font-family:'Orbitron',monospace;font-size:11px;font-weight:700;color:var(--muted);width:20px;text-align:center">${rank}</div>
+          <div style="width:28px;height:28px;border-radius:6px;background:var(--bg2);flex-shrink:0;overflow:hidden">${hel(p)}</div>
+          <div style="flex:1;min-width:0">
+            <div style="font-size:13px;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${p.name}${meTag(p)}</div>
+            <div style="font-size:9px;color:var(--muted-hi);margin-top:1px">${subInfo(p)}</div>
+          </div>
+          <div style="font-family:'Orbitron',monospace;font-size:13px;font-weight:700;color:var(--muted-hi);flex-shrink:0">${p.pts||0}<span style="font-size:9px;color:var(--muted);font-weight:400"> pts</span></div>
+        </div>`;
+      });
+      listHtml += `</div>`;
+    }
+
+    gEl('leaderboard').innerHTML = podiumHtml + listHtml;
+    const rank = players.findIndex(p=>p.id===CU.id)+1;
+    gEl('stat-rank').textContent = rank>0 ? '#'+rank : '—';
   });
 }
 
