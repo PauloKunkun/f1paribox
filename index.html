@@ -1346,10 +1346,7 @@ header{position:sticky;top:0;z-index:100;background:rgba(6,6,12,0.92);border-bot
   <!-- ── NEWS ── -->
   <section id="section-news" class="section">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
-      <div>
-        <div class="bloc-title" style="margin-bottom:2px">F1 NEWS · <span style="color:var(--red)">LIVE</span></div>
-        <div style="font-size:10px;color:var(--muted)">Actualités réécrites par Claude</div>
-      </div>
+      <div class="bloc-title" style="margin-bottom:0">F1 NEWS · <span style="color:var(--red)">LIVE</span></div>
       <button id="newsRefreshBtn" onclick="loadF1News(true)" style="display:none;background:rgba(0,212,255,.07);border:1px solid rgba(0,212,255,.2);color:var(--cyan);font-family:'Orbitron',monospace;font-size:9px;font-weight:700;letter-spacing:1px;padding:6px 12px;border-radius:6px;cursor:pointer">🔄 ACTUALISER</button>
     </div>
     <div id="newsStatus" style="font-size:11px;color:var(--muted);margin-bottom:10px;min-height:16px"></div>
@@ -2115,7 +2112,7 @@ function buildHelmetGrid(selectedId) {
     btn.type = 'button';
     btn.className = 'h-opt' + (h.id === selectedId ? ' active' : '');
     btn.style.borderColor = h.id === selectedId ? h.color : 'transparent';
-    btn.innerHTML = '<div style="width:56px;height:56px;background:var(--bg2);border-radius:10px;overflow:hidden">' + h.svg + '</div>'
+    btn.innerHTML = '<div style="width:56px;height:56px;background:var(--bg2);border-radius:10px;overflow:hidden">' + helmetSvgUnique(h.svg, h.id + '_g' + (_helmetUid++)) + '</div>'
       + '<div class="h-lbl">' + h.name + '</div>';
     btn.onclick = () => {
       grid.querySelectorAll('.h-opt').forEach(b => { b.classList.remove('active'); b.style.borderColor = 'transparent'; });
@@ -2127,11 +2124,20 @@ function buildHelmetGrid(selectedId) {
   });
 }
 
+// Rend un SVG casque en évitant les collisions d'IDs de dégradés
+function helmetSvgUnique(svg, suffix) {
+  // Remplace tous les id="xxx" et url(#xxx) par des versions suffixées
+  return svg
+    .replace(/\bid="([^"]+)"/g, (_, id) => `id="${id}_${suffix}"`)
+    .replace(/url\(#([^)]+)\)/g, (_, id) => `url(#${id}_${suffix})`);
+}
+let _helmetUid = 0;
+
 function renderHelmet(containerId, helmetId) {
   const el = document.getElementById(containerId);
   if (!el) return;
   const h = F1_HELMETS.find(x => x.id === helmetId) || F1_HELMETS[0];
-  el.innerHTML = h.svg;
+  el.innerHTML = helmetSvgUnique(h.svg, containerId.replace(/[^a-z0-9]/gi,''));
 }
 // signup emoji obsolète
 
@@ -4775,7 +4781,8 @@ async function _loadRRAllPlayers(r) {
           <div style="font-size:16px">⏳</div>
           <div style="font-family:'Orbitron',monospace;font-size:9px;font-weight:700;letter-spacing:1px;color:rgba(255,195,0,.9)">PARIS DES JOUEURS (${betPlayers.length} JOUEURS)</div>
         </div>` + betPlayers.map((p, i) => {
-        const helmet = (F1_HELMETS.find(x => x.id === (p.helmetId || F1_HELMETS[0].id)) || F1_HELMETS[0]).svg;
+        const _hObj = (F1_HELMETS.find(x => x.id === (p.helmetId || F1_HELMETS[0].id)) || F1_HELMETS[0]);
+        const helmet = helmetSvgUnique(_hObj.svg, _hObj.id + '_bp' + i);
         const playerId = `rrp-${r}-${i}`;
         return `
           <div style="background:var(--bg3);border:1px solid ${p.isMe ? 'rgba(232,0,45,.4)' : 'var(--border)'};border-radius:4px;margin-bottom:6px;overflow:hidden">
@@ -4844,7 +4851,8 @@ async function _loadRRAllPlayers(r) {
     pane.innerHTML = `<div style="padding:8px 14px 12px">` + players.map((p, i) => {
       const sign = p.total >= 0 ? '+' : '';
       const col  = p.total > 0 ? 'var(--green)' : p.total === 0 ? 'var(--muted)' : 'var(--red)';
-      const helmet = (F1_HELMETS.find(x => x.id === (p.helmetId || F1_HELMETS[0].id)) || F1_HELMETS[0]).svg;
+      const _hObj2 = (F1_HELMETS.find(x => x.id === (p.helmetId || F1_HELMETS[0].id)) || F1_HELMETS[0]);
+      const helmet = helmetSvgUnique(_hObj2.svg, _hObj2.id + '_pl' + i);
       const playerId = `rrp-${r}-${i}`;
 
       const blocsHtml = EV_ORDER.map(evType => {
@@ -5566,7 +5574,7 @@ function calcReal(b,data){
 /* ════════ NEWS F1 ════════ */
 
 // ⚠️ Remplace par l'URL de ton Cloudflare Worker après déploiement
-const NEWS_WORKER_URL = 'https://f1paribox-news.TON_COMPTE.workers.dev/news';
+const NEWS_WORKER_URL = 'https://f1paribox-news.administration-c95.workers.dev/news';
 const NEWS_CACHE_KEY = 'f1news_v1';
 const NEWS_CACHE_TTL = 3 * 60 * 60 * 1000; // 3h
 
@@ -5584,8 +5592,8 @@ function _newsFormatDate(str) {
   } catch { return ''; }
 }
 
-function _newsGetTag(title, content) {
-  const t = (title + content).toLowerCase();
+function _newsGetTag(title, summary) {
+  const t = (title + summary).toLowerCase();
   if (/race|course|gp|grand prix|qualif|qualify/.test(t)) return { bg:'rgba(232,0,45,.1)', color:'var(--red)', border:'rgba(232,0,45,.2)', label:'COURSE' };
   if (/car|engine|tech|upgrade|develop|aero/.test(t)) return { bg:'rgba(0,212,255,.08)', color:'var(--cyan)', border:'rgba(0,212,255,.15)', label:'TECHNIQUE' };
   if (/driver|pilote|contract|sign|transfer|seat/.test(t)) return { bg:'rgba(245,200,66,.08)', color:'var(--gold)', border:'rgba(245,200,66,.15)', label:'TRANSFERT' };
@@ -5600,7 +5608,8 @@ function _newsRenderArticles(articles) {
     return;
   }
   list.innerHTML = articles.map(a => {
-    const tag = _newsGetTag(a.title, a.content);
+    const tag = _newsGetTag(a.title, a.summary || '');
+    const text = a.content || a.summary || '';
     return `<div style="background:var(--bg3);border:1px solid var(--border);border-radius:12px;overflow:hidden">
       <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-bottom:1px solid var(--border);background:rgba(255,255,255,.02)">
         <span style="font-family:'Orbitron',monospace;font-size:9px;font-weight:700;letter-spacing:2px;color:var(--muted);background:var(--bg2);padding:3px 8px;border-radius:4px">${a.source}</span>
@@ -5609,7 +5618,8 @@ function _newsRenderArticles(articles) {
       <div style="padding:14px 16px">
         <span style="display:inline-block;font-family:'Orbitron',monospace;font-size:8px;font-weight:700;letter-spacing:1px;padding:2px 8px;border-radius:4px;margin-bottom:10px;background:${tag.bg};color:${tag.color};border:1px solid ${tag.border}">${tag.label}</span>
         <div style="font-family:'Orbitron',monospace;font-size:11px;font-weight:700;letter-spacing:1px;color:var(--text);margin-bottom:10px;line-height:1.5">${a.title}</div>
-        <div style="font-family:'Rajdhani',sans-serif;font-size:14px;line-height:1.7;color:rgba(232,232,240,.8)">${a.content}</div>
+        ${text ? `<div style="font-family:'Rajdhani',sans-serif;font-size:14px;line-height:1.7;color:rgba(232,232,240,.8);margin-bottom:10px">${text}</div>` : ''}
+        ${a.link ? `<a href="${a.link}" target="_blank" style="font-family:'Orbitron',monospace;font-size:9px;font-weight:700;letter-spacing:1px;color:var(--cyan);text-decoration:none;opacity:.7">LIRE L'ARTICLE ↗</a>` : ''}
       </div>
     </div>`;
   }).join('');
@@ -5693,7 +5703,7 @@ function startLB(){
     players.sort((a,b)=>b.pts-a.pts);
     if(players.length===0){ gEl('leaderboard').innerHTML='<div class="loader"><div class="loader-txt">Aucun joueur</div></div>'; return; }
 
-    const hel = p => (F1_HELMETS.find(x=>x.id===(p.helmetId||F1_HELMETS[0].id))||F1_HELMETS[0]).svg;
+    let _helIdx=0; const hel = p => { const ho=(F1_HELMETS.find(x=>x.id===(p.helmetId||F1_HELMETS[0].id))||F1_HELMETS[0]); return helmetSvgUnique(ho.svg, ho.id+'_sc'+(_helIdx++)); };
     const meTag = p => p.isMe ? ' <span style="font-size:9px;color:var(--red);letter-spacing:1px">MOI</span>' : '';
     const subInfo = p => {
       const drv = p.favoriteDriver ? F1_DRIVERS_2026.find(x=>x.id===p.favoriteDriver) : null;
