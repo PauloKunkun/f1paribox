@@ -2887,8 +2887,15 @@ async function loadRace(){
   const now=new Date();
   const _calGP = getActiveRace();
   const _bettingGP = getBettingGP(); // prochain GP sur lequel on parie
-  // Header : afficher le GP de paris (futur), pas le dernier GP passé
-  const _displayGP = _bettingGP.raceDate > now ? _bettingGP : _calGP;
+
+  // Header : afficher le GP actif si son weekend est en cours,
+  // sinon le prochain GP à venir
+  const _gpStart = _calGP.fp1
+    ? parseEventDate(_calGP.fp1, _calGP.raceDate)
+    : new Date(_calGP.raceDate.getTime() - 3 * 24 * 3600000); // fallback J-3
+  const _gpEnd   = new Date(_calGP.raceDate.getTime() + 2 * 3600000);
+  const _weekendLive = now >= _gpStart && now <= _gpEnd;
+  const _displayGP = _weekendLive ? _calGP : _bettingGP;
   gEl('raceName').textContent = (_displayGP.flag+' '+_displayGP.race).toUpperCase();
   gEl('raceDetail').textContent = (_displayGP.circuit||'')+' · '+(_displayGP.country||'');
   const d = _displayGP.raceDate;
