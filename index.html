@@ -2578,7 +2578,12 @@ function getBetsRevealDate() {
 function getBetsOpenDate(cal) {
   const idx = CALENDAR.indexOf(cal);
   if (idx <= 0) return new Date(0); // premier GP = toujours ouvert
-  const prevCal = CALENDAR[idx - 1];
+  // Remonter au dernier GP non annulé avant celui-ci
+  let prevCal = null;
+  for (let i = idx - 1; i >= 0; i--) {
+    if (!CALENDAR[i].cancelled) { prevCal = CALENDAR[i]; break; }
+  }
+  if (!prevCal) return new Date(0);
   // Fin théorique du GP précédent = raceDate + 2h + 1h buffer
   return new Date(prevCal.raceDate.getTime() + (2 + 1) * 3600000);
 }
@@ -4952,8 +4957,8 @@ async function renderResults() {
   Object.keys(_rrAllCache).forEach(k => delete _rrAllCache[k]);
 
   const now     = new Date();
-  // Afficher les GP dont les paris sont ouverts (GP précédent terminé) OU déjà courus
-  const pastGPs = CALENDAR.filter(c => getBetsOpenDate(c) <= now);
+  // Afficher les GP dont les paris sont ouverts (GP précédent terminé) OU déjà courus — sauf annulés
+  const pastGPs = CALENDAR.filter(c => !c.cancelled && getBetsOpenDate(c) <= now);
 
   if (pastGPs.length === 0) {
     box.innerHTML = `<div class="locked-box"><div style="font-size:32px">🏎️</div><div style="font-size:12px;color:var(--muted);margin-top:8px">La saison 2026 n'a pas encore démarré</div></div>`;
