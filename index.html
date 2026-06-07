@@ -3603,6 +3603,24 @@ window._pbClearField = function(field) {
 
 // ── Modal ──
 window.openDriverModal = function(field, label) {
+  // Vérifier si le bloc est encore ouvert
+  const closes = getBlockCloseDates(getBettingGP());
+  const now = new Date();
+  const qualiFields   = ['pole','last'];
+  const spQualiFields = ['spole','slast'];
+  const sprintFields  = ['sp1','sp2','sp3'];
+  let blocClosed = false;
+  if (spQualiFields.includes(field)) {
+    blocClosed = closes.spQuali && now >= closes.spQuali;
+  } else if (qualiFields.includes(field)) {
+    blocClosed = now >= closes.quali;
+  } else if (sprintFields.includes(field)) {
+    blocClosed = closes.sprint && now >= closes.sprint;
+  } else {
+    blocClosed = now >= closes.race;
+  }
+  if (blocClosed) { notif('🔒 Ce bloc est fermé'); return; }
+
   _pbActiveField = field;
   gEl('pbModalTitle').textContent = label.toUpperCase();
   gEl('pbSearch').value = '';
@@ -5194,16 +5212,20 @@ async function _loadRRResult(r) {
     const link = openF1Links[evType];
     html += `
     <div style="margin-bottom:10px;background:var(--bg3);border:1px solid var(--border);border-radius:10px;overflow:hidden">
-      <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:rgba(255,255,255,.02);border-bottom:1px solid var(--border)">
-        <div style="display:flex;align-items:center;gap:10px;flex:1">
-          ${lbl.icon}
-          <div>
-            <div style="font-family:'Orbitron',monospace;font-size:10px;font-weight:700;letter-spacing:2px;color:${lbl.color}">${lbl.title}</div>
-            <div style="font-size:11px;color:var(--muted-hi);margin-top:2px">${lbl.badge}</div>
+      <div style="padding:10px 14px;background:rgba(255,255,255,.02);border-bottom:1px solid var(--border)">
+        <div style="display:flex;align-items:center;justify-content:space-between">
+          <div style="display:flex;align-items:center;gap:10px;flex:1;min-width:0">
+            ${lbl.icon}
+            <div style="min-width:0">
+              <div style="font-family:'Orbitron',monospace;font-size:10px;font-weight:700;letter-spacing:2px;color:${lbl.color}">${lbl.title}</div>
+              <div style="font-size:11px;color:var(--muted-hi);margin-top:2px">${lbl.badge}</div>
+            </div>
           </div>
+          <div style="font-family:'Orbitron',monospace;font-size:15px;font-weight:900;color:${evTotal > 0 ? 'var(--green)' : evTotal < 0 ? 'var(--red)' : 'var(--muted)'};min-width:36px;text-align:right;margin-left:8px;flex-shrink:0">${evTotal >= 0 ? '+' : ''}${evTotal}</div>
         </div>
-        <button onclick="showEventClassement(${r},'${evType}')" style="font-size:8px;color:var(--cyan);background:rgba(0,212,255,.05);border:1px solid rgba(0,212,255,.2);border-radius:4px;padding:3px 7px;cursor:pointer;font-family:'Orbitron',monospace;font-weight:700;letter-spacing:1px;flex-shrink:0;white-space:nowrap">CLASSEMENT PILOTES</button>
-        <div style="font-family:'Orbitron',monospace;font-size:15px;font-weight:900;color:${evTotal > 0 ? 'var(--green)' : evTotal < 0 ? 'var(--red)' : 'var(--muted)'};min-width:36px;text-align:right;margin-left:8px">${evTotal >= 0 ? '+' : ''}${evTotal}</div>
+        <div style="margin-top:8px">
+          <button onclick="showEventClassement(${r},'${evType}')" style="font-size:8px;color:var(--cyan);background:rgba(0,212,255,.05);border:1px solid rgba(0,212,255,.2);border-radius:4px;padding:3px 10px;cursor:pointer;font-family:'Orbitron',monospace;font-weight:700;letter-spacing:1px;white-space:nowrap">CLASSEMENT PILOTES</button>
+        </div>
       </div>
       <div class="res-rows">${rr_rows(evData.rows || [])}</div>
     </div>`;
