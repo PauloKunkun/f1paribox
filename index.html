@@ -1888,10 +1888,40 @@ window.adminSyncCalendar = async function() {
     }
     dbg('Anciens overrides calendrier supprimés', 'ok');
 
+    // Table de correspondance circuitId Jolpica → round CALENDAR 2026
+    const CIRCUIT_TO_ROUND = {
+      'albert_park':  1,  // Australie
+      'shanghai':     2,  // Chine
+      'suzuka':       3,  // Japon
+      // 4 Bahreïn — annulé, absent de l'API
+      // 5 Arabie Saoudite — annulé, absent de l'API
+      'miami':        6,  // Miami
+      'villeneuve':   7,  // Canada
+      'monaco':       8,  // Monaco
+      'catalunya':    9,  // Espagne
+      'red_bull_ring':10, // Autriche
+      'silverstone':  11, // Grande-Bretagne
+      'hungaroring':  12, // Hongrie
+      'spa':          13, // Belgique
+      'zandvoort':    14, // Pays-Bas
+      'monza':        15, // Italie
+      'madring':      16, // Madrid
+      'baku':         17, // Azerbaïdjan
+      'marina_bay':   18, // Singapour
+      'americas':     19, // USA
+      'rodriguez':    20, // Mexique
+      'interlagos':   21, // Brésil
+      'vegas':        22, // Las Vegas
+      'losail':       23, // Qatar
+      'yas_marina':   24, // Abu Dhabi
+    };
+
     for (const race of races) {
       const circuitId = race.Circuit?.circuitId || '';
-      const cal = CALENDAR.find(c => c.f1Slug === circuitId);
-      if (!cal) { dbg(`Sync: circuitId "${circuitId}" non trouvé dans CALENDAR`, 'err'); continue; }
+      const round = CIRCUIT_TO_ROUND[circuitId];
+      if (!round) { dbg(`Sync: circuitId "${circuitId}" non mappé`, 'err'); continue; }
+      const cal = CALENDAR.find(c => c.round === round);
+      if (!cal) { dbg(`Sync: round ${round} non trouvé dans CALENDAR`, 'err'); continue; }
 
       const raceDate  = race.date;
       const raceTime  = race.time || '12:00:00Z';
