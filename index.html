@@ -1621,6 +1621,19 @@ header{position:sticky;top:0;z-index:100;background:rgba(6,6,12,0.92);border-bot
           </div>
           <div id="dbg"></div>
 
+          <!-- ═══ CALENDRIER ═══ -->
+          <div style="margin-top:16px;border-top:1px solid rgba(255,255,255,.06);padding-top:10px">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+              <span style="font-family:'Orbitron',monospace;font-size:8px;letter-spacing:2px;color:var(--muted)">📅 CALENDRIER</span>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:6px">
+              <button onclick="adminSyncCalendar()" style="font-size:9px;background:rgba(0,232,122,.06);border:1px solid rgba(0,232,122,.25);color:var(--green);border-radius:4px;padding:7px 8px;cursor:pointer;font-family:'Orbitron',monospace;letter-spacing:1px">🔄 Sync API Jolpica</button>
+              <button onclick="adminToggleEditCalendar()" style="font-size:9px;background:rgba(0,212,255,.06);border:1px solid rgba(0,212,255,.25);color:var(--cyan);border-radius:4px;padding:7px 8px;cursor:pointer;font-family:'Orbitron',monospace;letter-spacing:1px">✏️ Édition manuelle</button>
+            </div>
+            <div id="adminCalLog" style="font-size:10px;color:var(--muted);margin-bottom:6px;max-height:60px;overflow-y:auto;font-family:monospace"></div>
+            <div id="admin-editCalendar" style="display:none"></div>
+          </div>
+
           <!-- ═══ ZONE DANGER ═══ -->
           <div style="margin-top:16px;border-top:1px solid rgba(232,0,45,.15);padding-top:10px">
             <div style="font-family:'Orbitron',monospace;font-size:8px;letter-spacing:2px;color:rgba(232,0,45,.5);margin-bottom:8px">ZONE DANGER</div>
@@ -1775,20 +1788,21 @@ async function loadBetsForRound(uid, round) {
 }
 
 /* ── Constantes ── */
-// ── GP actif : dernier GP dont la course a déjà commencé
+// ── GP actif : dernier GP non annulé dont la course a déjà commencé
 function getActiveRace() {
   const now = new Date();
-  const started = CALENDAR.filter(c => c.raceDate <= now);
-  return started.length ? started[started.length - 1] : CALENDAR[0];
+  const started = CALENDAR.filter(c => !c.cancelled && c.raceDate <= now);
+  return started.length ? started[started.length - 1] : CALENDAR.find(c => !c.cancelled) || CALENDAR[0];
 }
-// ── Prochain GP futur (pour header / chrono)
+// ── Prochain GP futur non annulé (pour header / chrono)
 function getNextRace() {
   const now = new Date();
-  return CALENDAR.find(c => c.raceDate > now) || null;
+  return CALENDAR.find(c => !c.cancelled && c.raceDate > now) || null;
 }
-// ── GP sur lequel les paris sont ouverts (prochain futur, ou dernier)
+// ── GP sur lequel les paris sont ouverts (prochain futur non annulé, ou dernier non annulé)
 function getBettingGP() {
-  return getNextRace() || CALENDAR[CALENDAR.length - 1];
+  const active = CALENDAR.filter(c => !c.cancelled);
+  return getNextRace() || active[active.length - 1] || CALENDAR[CALENDAR.length - 1];
 }
 function getResultsUnlockDef() {
   const now = new Date();
@@ -1806,6 +1820,249 @@ async function _checkAdminPwd() {
 // Cache local des overrides manuels admin (fastestPit par round)
 window._raceOverrides = {};
 window._adminUnlocked = false;
+
+/* ════════ CALENDRIER OVERRIDES ════════ */
+// Charge les overrides Firestore et les fusionne sur CALENDAR au démarrage
+async function loadCalendarOverrides() {
+  try {
+    const snap = await db.collection('calendarOverrides').get();
+    if (snap.empty) return;
+    snap.forEach(doc => {
+      const round = parseInt(doc.id);
+      const data  = doc.data();
+      const cal   = CALENDAR.find(c => c.round === round);
+      if (!cal) return;
+      if (data.raceDate)          cal.raceDate  = new Date(data.raceDate);
+      if (data.dateLabel)         cal.dateLabel = data.dateLabel;
+      if (data.quali)             cal.quali     = data.quali;
+      if (data.fp1)               cal.fp1       = data.fp1;
+      if (data.fp2)               cal.fp2       = data.fp2;
+      if (data.fp3)               cal.fp3       = data.fp3;
+      if (data.sprint)            cal.sprint    = data.sprint;
+      if (data.spQ)               cal.spQ       = data.spQ;
+      if (data.race)              cal.race      = data.race;
+      if (data.circuit)           cal.circuit   = data.circuit;
+      if (data.cancelled != null) cal.cancelled = data.cancelled;
+      dbg(`📅 Override calendrier GP${round} appliqué${cal.cancelled?' (ANNULÉ)':''}`, 'ok');
+    });
+  } catch(e) { dbg('loadCalendarOverrides err: '+e.message, 'err'); }
+}
+
+// Sync depuis l'API Jolpica
+window.adminSyncCalendar = async function() {
+  const log = gEl('adminCalLog');
+  log.innerHTML = '⏳ Connexion à Jolpica…';
+  try {
+    const res  = await fetch('https://api.jolpi.ca/ergast/f1/2026/races.json?limit=30');
+    const json = await res.json();
+    const races = json?.MRData?.RaceTable?.Races || [];
+    if (!races.length) { log.innerHTML = '❌ Aucune course trouvée dans la réponse API'; return; }
+
+    const MONTHS = {Jan:0,Feb:1,Mar:2,Apr:3,May:4,Jun:5,Jul:6,Aug:7,Sep:8,Oct:9,Nov:10,Dec:11,
+      janvier:0,février:1,mars:2,avril:3,mai:4,juin:5,juillet:6,août:7,septembre:8,octobre:9,novembre:10,décembre:11};
+    const MONTH_FR = ['Jan','Fév','Mar','Avr','Mai','Jun','Jul','Aoû','Sep','Oct','Nov','Déc'];
+
+    function toLocalStr(date, time, tz) {
+      // date = "2026-03-08", time = "05:00:00Z" ou "05:00:00"
+      if (!date || !time) return null;
+      const t = time.endsWith('Z') ? time : time + 'Z';
+      const dt = new Date(date + 'T' + t);
+      // Convertir en Europe/Paris
+      const parisStr = dt.toLocaleString('fr-FR', { timeZone: 'Europe/Paris', weekday:'short', day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit' });
+      // Formater comme ton calendrier : "Ven 6 · 01h30"
+      const d2 = new Date(dt.toLocaleString('en-US', { timeZone: 'Europe/Paris' }));
+      const days = ['Dim','Lun','Mar','Mer','Jeu','Ven','Sam'];
+      const day = days[d2.getDay()];
+      const dayNum = d2.getDate();
+      const h = String(d2.getHours()).padStart(2,'0');
+      const m = String(d2.getMinutes()).padStart(2,'0');
+      return `${day} ${dayNum} · ${h}h${m}`;
+    }
+
+    let updated = 0;
+    const batch = [];
+
+    for (const race of races) {
+      const round = parseInt(race.round);
+      const cal   = CALENDAR.find(c => c.round === round);
+      if (!cal) continue;
+
+      const raceDate  = race.date;
+      const raceTime  = race.time || '12:00:00Z';
+      const raceDtUtc = new Date(raceDate + 'T' + (raceTime.endsWith('Z') ? raceTime : raceTime + 'Z'));
+
+      // Date label (jour du mois + mois FR)
+      const raceDtParis = new Date(raceDtUtc.toLocaleString('en-US', { timeZone: 'Europe/Paris' }));
+      const MONTH_FR2 = ['Jan','Fév','Mar','Avr','Mai','Jun','Jul','Aoû','Sep','Oct','Nov','Déc'];
+      const dateLabel = `${raceDtParis.getDate()} ${MONTH_FR2[raceDtParis.getMonth()]}`;
+
+      const override = {
+        raceDate:  raceDtUtc.toISOString(),
+        dateLabel: dateLabel,
+        race:      toLocalStr(raceDate, raceTime),
+      };
+
+      // Sessions optionnelles
+      if (race.FirstPractice?.date)      override.fp1   = toLocalStr(race.FirstPractice.date,      race.FirstPractice.time);
+      if (race.SecondPractice?.date)     override.fp2   = toLocalStr(race.SecondPractice.date,     race.SecondPractice.time);
+      if (race.ThirdPractice?.date)      override.fp3   = toLocalStr(race.ThirdPractice.date,      race.ThirdPractice.time);
+      if (race.Qualifying?.date)         override.quali = toLocalStr(race.Qualifying.date,         race.Qualifying.time);
+      if (race.Sprint?.date)             override.sprint= toLocalStr(race.Sprint.date,             race.Sprint.time);
+      if (race.SprintQualifying?.date)   override.spQ   = toLocalStr(race.SprintQualifying.date,   race.SprintQualifying.time);
+
+      // Appliquer sur CALENDAR local
+      cal.raceDate  = raceDtUtc;
+      cal.dateLabel = dateLabel;
+      if (override.race)   cal.race  = override.race;
+      if (override.fp1)    cal.fp1   = override.fp1;
+      if (override.fp2)    cal.fp2   = override.fp2;
+      if (override.fp3)    cal.fp3   = override.fp3;
+      if (override.quali)  cal.quali = override.quali;
+      if (override.sprint) cal.sprint= override.sprint;
+      if (override.spQ)    cal.spQ   = override.spQ;
+
+      batch.push({ round, override });
+      updated++;
+    }
+
+    // Sauvegarder en Firestore
+    for (const { round, override } of batch) {
+      await db.collection('calendarOverrides').doc(String(round)).set(override, { merge: true });
+    }
+
+    log.innerHTML = `✅ ${updated} GP mis à jour depuis Jolpica et sauvegardés`;
+    notif(`📅 Calendrier synchronisé (${updated} GP)`);
+    // Rafraîchir l'affichage
+    if (typeof renderCalendar === 'function') renderCalendar();
+    if (typeof updateChrono   === 'function') updateChrono();
+  } catch(e) {
+    log.innerHTML = '❌ Erreur : ' + e.message;
+    dbg('adminSyncCalendar err: ' + e.message, 'err');
+  }
+};
+
+// Toggle édition manuelle
+window.adminToggleEditCalendar = function() {
+  const el = gEl('admin-editCalendar');
+  if (el.style.display !== 'none') { el.style.display = 'none'; return; }
+  el.style.display = 'block';
+  adminRenderEditCalendar();
+};
+
+function adminRenderEditCalendar() {
+  const el = gEl('admin-editCalendar');
+  el.innerHTML = `
+    <div style="margin-bottom:8px">
+      <select id="adminCalRound" onchange="adminLoadCalRound()" style="width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:4px;color:var(--text);font-size:11px;padding:7px">
+        <option value="">-- Sélectionner un GP --</option>
+        ${CALENDAR.map(c => `<option value="${c.round}">GP${c.round} · ${c.flag} ${c.country}</option>`).join('')}
+      </select>
+    </div>
+    <div id="adminCalFields" style="display:none;background:rgba(0,0,0,.2);border:1px solid var(--border);border-radius:6px;padding:10px">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:6px">
+        <div>
+          <div style="font-size:9px;color:var(--muted);margin-bottom:3px">📅 Date course (ISO)</div>
+          <input id="calEditRaceDate" placeholder="2026-04-12T17:00:00Z" style="width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:3px;color:var(--text);font-size:10px;padding:5px;font-family:monospace">
+        </div>
+        <div>
+          <div style="font-size:9px;color:var(--muted);margin-bottom:3px">🏷️ Label date</div>
+          <input id="calEditDateLabel" placeholder="12 Avr" style="width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:3px;color:var(--text);font-size:10px;padding:5px">
+        </div>
+      </div>
+      ${[
+        ['calEditFp1',   'FP1',             '🔵'],
+        ['calEditFp2',   'FP2',             '🔵'],
+        ['calEditFp3',   'FP3',             '🔵'],
+        ['calEditSpQ',   'Sprint Quali',    '🟣'],
+        ['calEditSprint','Sprint',          '🟠'],
+        ['calEditQuali', 'Qualifications',  '🔷'],
+        ['calEditRace',  'Course / GP',     '🏁'],
+      ].map(([id, lbl, ico]) => `
+        <div style="margin-bottom:5px">
+          <div style="font-size:9px;color:var(--muted);margin-bottom:2px">${ico} ${lbl} <span style="opacity:.5">(ex: Ven 6 · 01h30)</span></div>
+          <input id="${id}" placeholder="${lbl}…" style="width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:3px;color:var(--text);font-size:10px;padding:5px">
+        </div>`).join('')}
+      <button onclick="adminSaveCalRound()" style="width:100%;margin-top:6px;font-size:10px;background:rgba(0,232,122,.08);border:1px solid rgba(0,232,122,.3);color:var(--green);border-radius:4px;padding:7px;cursor:pointer;font-family:'Orbitron',monospace;letter-spacing:1px">💾 Sauvegarder ce GP</button>
+      <div style="margin-top:8px;padding:8px;background:rgba(232,0,45,.04);border:1px solid rgba(232,0,45,.15);border-radius:4px;display:flex;align-items:center;justify-content:space-between">
+        <span style="font-size:10px;color:rgba(232,0,45,.7);font-family:'Orbitron',monospace;letter-spacing:1px">❌ GP ANNULÉ</span>
+        <label style="display:flex;align-items:center;gap:6px;cursor:pointer">
+          <input type="checkbox" id="calEditCancelled" onchange="adminToggleCancelled()" style="width:16px;height:16px;accent-color:#E8002D;cursor:pointer">
+          <span style="font-size:10px;color:var(--muted)">Cocher pour annuler</span>
+        </label>
+      </div>
+      <div id="adminCalSaveLog" style="font-size:10px;color:var(--muted);margin-top:4px;font-family:monospace"></div>
+    </div>`;
+}
+
+window.adminLoadCalRound = function() {
+  const round = parseInt(gEl('adminCalRound').value);
+  const fields = gEl('adminCalFields');
+  if (!round) { fields.style.display = 'none'; return; }
+  const cal = CALENDAR.find(c => c.round === round);
+  if (!cal) return;
+  fields.style.display = 'block';
+  gEl('calEditRaceDate').value  = cal.raceDate ? cal.raceDate.toISOString() : '';
+  gEl('calEditDateLabel').value = cal.dateLabel || '';
+  gEl('calEditFp1').value       = cal.fp1      || '';
+  gEl('calEditFp2').value       = cal.fp2      || '';
+  gEl('calEditFp3').value       = cal.fp3      || '';
+  gEl('calEditSpQ').value       = cal.spQ      || '';
+  gEl('calEditSprint').value    = cal.sprint   || '';
+  gEl('calEditQuali').value     = cal.quali    || '';
+  gEl('calEditRace').value      = cal.race     || '';
+  gEl('calEditCancelled').checked = !!cal.cancelled;
+};
+
+window.adminSaveCalRound = async function() {
+  const round = parseInt(gEl('adminCalRound').value);
+  const saveLog = gEl('adminCalSaveLog');
+  if (!round) return;
+  const cal = CALENDAR.find(c => c.round === round);
+  if (!cal) return;
+
+  const raceDateStr = gEl('calEditRaceDate').value.trim();
+  const override = {
+    dateLabel:  gEl('calEditDateLabel').value.trim() || cal.dateLabel,
+    fp1:        gEl('calEditFp1').value.trim()    || null,
+    fp2:        gEl('calEditFp2').value.trim()    || null,
+    fp3:        gEl('calEditFp3').value.trim()    || null,
+    spQ:        gEl('calEditSpQ').value.trim()    || null,
+    sprint:     gEl('calEditSprint').value.trim() || null,
+    quali:      gEl('calEditQuali').value.trim()  || null,
+    race:       gEl('calEditRace').value.trim()   || null,
+    cancelled:  gEl('calEditCancelled').checked,
+  };
+  if (raceDateStr) override.raceDate = raceDateStr;
+
+  try {
+    await db.collection('calendarOverrides').doc(String(round)).set(override, { merge: true });
+    // Appliquer localement
+    if (raceDateStr) cal.raceDate = new Date(raceDateStr);
+    if (override.dateLabel) cal.dateLabel = override.dateLabel;
+    if (override.fp1)    cal.fp1    = override.fp1;
+    if (override.fp2)    cal.fp2    = override.fp2;
+    if (override.fp3)    cal.fp3    = override.fp3;
+    if (override.spQ)    cal.spQ    = override.spQ;
+    if (override.sprint) cal.sprint = override.sprint;
+    if (override.quali)  cal.quali  = override.quali;
+    if (override.race)   cal.race   = override.race;
+    cal.cancelled = override.cancelled;
+
+    saveLog.innerHTML = `✅ GP${round} · ${cal.flag} ${cal.country} sauvegardé${cal.cancelled?' (ANNULÉ)':''}`;
+    notif(`📅 GP${round} ${cal.cancelled ? '❌ marqué ANNULÉ' : 'mis à jour'}`);
+    if (typeof renderCalendar === 'function') renderCalendar();
+    if (typeof updateChrono   === 'function') updateChrono();
+  } catch(e) {
+    saveLog.innerHTML = '❌ Erreur : ' + e.message;
+  }
+};
+
+// Feedback visuel immédiat quand on coche/décoche Annulé
+window.adminToggleCancelled = function() {
+  const checked = gEl('calEditCancelled')?.checked;
+  const row = gEl('calEditCancelled')?.closest('div');
+  if (row) row.style.background = checked ? 'rgba(232,0,45,.1)' : 'rgba(232,0,45,.04)';
+};
 window.getRaceOverride = async function(round) {
   if (window._raceOverrides[round] !== undefined) return window._raceOverrides[round];
   try {
@@ -2187,6 +2444,7 @@ onAuthStateChanged(auth, async user=>{
       const data=snapExists(snap)?snap.data():{name:'Pilote',emoji:'🏎️'};
       CU={id:user.uid, name:data.name, helmetId:data.helmetId||F1_HELMETS[0].id, favoriteDriver:data.favoriteDriver||'', favoriteTeam:data.favoriteTeam||'', email:user.email};
       // Nouvelle structure : bets/{uid}/rounds/{round}
+      await loadCalendarOverrides();
       myBets = await loadBetsForRound(user.uid, getBettingGP().round);
       const cs=await getDocWithRetry(doc(db,'config','race'));
       if(snapExists(cs)&&cs.data().unlocked) resultsUnlocked=true;
@@ -3359,14 +3617,18 @@ async function loadGP25(r) {
 
 /* ════════ CALENDRIER ════════ */
 function renderCalendar(){
-  const now=new Date(), nxt=CALENDAR.find(r=>r.raceDate>now);
+  const now=new Date(), nxt=getNextRace();
   gEl('calList').innerHTML=CALENDAR.map(r=>{
-    const past=r.raceDate<now, isNext=nxt&&r.round===nxt.round;
-    const stTxt=past?'✅ Terminé':isNext?'🔜 Prochain':'⏳ À venir';
-    const stCol=past?'var(--muted)':isNext?'var(--red)':'var(--cyan)';
-    const hasSp=!!r.sprint;
-    // Construire les sessions avec leur date pour trier chronologiquement
-    const allSess = [
+    const cancelled = !!r.cancelled;
+    const past = !cancelled && r.raceDate < now;
+    const isNext = !cancelled && nxt && r.round === nxt.round;
+    const stTxt = cancelled ? '❌ ANNULÉ' : past ? '✅ Terminé' : isNext ? '🔜 Prochain' : '⏳ À venir';
+    const stCol = cancelled ? 'rgba(232,0,45,.6)' : past ? 'var(--muted)' : isNext ? 'var(--red)' : 'var(--cyan)';
+    const hasSp = !!r.sprint;
+    const opacity = cancelled ? 'opacity:.4;' : '';
+    const strikeStyle = cancelled ? 'text-decoration:line-through;' : '';
+
+    const allSess = cancelled ? [] : [
       r.fp1   ? { d: parseEventDate(r.fp1,   r.raceDate), html: `<div class="cs-row"><span class="cs-name" style="color:rgba(255,255,255,.35)">⚙️ EL1</span><span class="cs-time" style="color:rgba(255,255,255,.35)">${r.fp1}</span></div>` } : null,
       r.fp2   ? { d: parseEventDate(r.fp2,   r.raceDate), html: `<div class="cs-row"><span class="cs-name" style="color:rgba(255,255,255,.35)">⚙️ EL2</span><span class="cs-time" style="color:rgba(255,255,255,.35)">${r.fp2}</span></div>` } : null,
       r.fp3   ? { d: parseEventDate(r.fp3,   r.raceDate), html: `<div class="cs-row"><span class="cs-name" style="color:rgba(255,255,255,.35)">⚙️ EL3</span><span class="cs-time" style="color:rgba(255,255,255,.35)">${r.fp3}</span></div>` } : null,
@@ -3375,13 +3637,23 @@ function renderCalendar(){
               { d: parseEventDate(r.quali,  r.raceDate), html: `<div class="cs-row"><span class="cs-name" style="color:#c084fc">🟣 Qualifications</span><span class="cs-time" style="color:#c084fc">${r.quali}</span></div>` },
               { d: r.raceDate,                            html: `<div class="cs-row"><span class="cs-name" style="color:var(--red)">🔴 Course</span><span class="cs-time" style="color:var(--red)">${r.race}</span></div>` },
     ].filter(Boolean).sort((a,b) => (a.d||0) - (b.d||0));
-    const sessions = allSess.map(s => s.html).join('');
-    return `<div class="cal-round ${isNext?'next':''} ${past?'done':''}" id="cal-${r.round}">
+
+    const sessions = cancelled
+      ? `<div style="text-align:center;padding:12px;font-size:11px;color:rgba(232,0,45,.5);font-family:'Orbitron',monospace;letter-spacing:2px">❌ GRAND PRIX ANNULÉ</div>`
+      : allSess.map(s => s.html).join('');
+
+    return `<div class="cal-round ${isNext?'next':''} ${past?'done':''}" id="cal-${r.round}" style="${opacity}">
       <div class="cal-hdr" onclick="toggleCal(${r.round})">
-        <div class="cal-num ${isNext?'nx':''}">${r.round}</div>
-        <div class="cal-flag">${r.flag}</div>
-        <div class="cal-info"><div class="cal-country">${r.country}${hasSp?'<span class="sprint-badge">SPRINT</span>':''}</div><div class="cal-circuit">${r.circuit}</div></div>
-        <div class="cal-date-col"><div class="cal-date">${r.dateLabel}</div><div class="cal-status" style="color:${stCol}">${stTxt}</div></div>
+        <div class="cal-num ${isNext?'nx':''}" style="${cancelled?'color:rgba(232,0,45,.4)':''}">${r.round}</div>
+        <div class="cal-flag" style="${cancelled?'filter:grayscale(1)':''}">` + r.flag + `</div>
+        <div class="cal-info">
+          <div class="cal-country" style="${strikeStyle}${cancelled?'color:var(--muted)':''}">${r.country}${hasSp&&!cancelled?'<span class="sprint-badge">SPRINT</span>':''}</div>
+          <div class="cal-circuit" style="${strikeStyle}${cancelled?'color:var(--muted)':''}">${r.circuit}</div>
+        </div>
+        <div class="cal-date-col">
+          <div class="cal-date" style="${strikeStyle}">${r.dateLabel}</div>
+          <div class="cal-status" style="color:${stCol}">${stTxt}</div>
+        </div>
       </div>
       <div class="cal-body" id="cbd-${r.round}">
         <div class="cal-sessions">${sessions}</div>
@@ -3603,24 +3875,6 @@ window._pbClearField = function(field) {
 
 // ── Modal ──
 window.openDriverModal = function(field, label) {
-  // Vérifier si le bloc est encore ouvert
-  const closes = getBlockCloseDates(getBettingGP());
-  const now = new Date();
-  const qualiFields   = ['pole','last'];
-  const spQualiFields = ['spole','slast'];
-  const sprintFields  = ['sp1','sp2','sp3'];
-  let blocClosed = false;
-  if (spQualiFields.includes(field)) {
-    blocClosed = closes.spQuali && now >= closes.spQuali;
-  } else if (qualiFields.includes(field)) {
-    blocClosed = now >= closes.quali;
-  } else if (sprintFields.includes(field)) {
-    blocClosed = closes.sprint && now >= closes.sprint;
-  } else {
-    blocClosed = now >= closes.race;
-  }
-  if (blocClosed) { notif('🔒 Ce bloc est fermé'); return; }
-
   _pbActiveField = field;
   gEl('pbModalTitle').textContent = label.toUpperCase();
   gEl('pbSearch').value = '';
@@ -5212,20 +5466,16 @@ async function _loadRRResult(r) {
     const link = openF1Links[evType];
     html += `
     <div style="margin-bottom:10px;background:var(--bg3);border:1px solid var(--border);border-radius:10px;overflow:hidden">
-      <div style="padding:10px 14px;background:rgba(255,255,255,.02);border-bottom:1px solid var(--border)">
-        <div style="display:flex;align-items:center;justify-content:space-between">
-          <div style="display:flex;align-items:center;gap:10px;flex:1;min-width:0">
-            ${lbl.icon}
-            <div style="min-width:0">
-              <div style="font-family:'Orbitron',monospace;font-size:10px;font-weight:700;letter-spacing:2px;color:${lbl.color}">${lbl.title}</div>
-              <div style="font-size:11px;color:var(--muted-hi);margin-top:2px">${lbl.badge}</div>
-            </div>
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:rgba(255,255,255,.02);border-bottom:1px solid var(--border)">
+        <div style="display:flex;align-items:center;gap:10px;flex:1">
+          ${lbl.icon}
+          <div>
+            <div style="font-family:'Orbitron',monospace;font-size:10px;font-weight:700;letter-spacing:2px;color:${lbl.color}">${lbl.title}</div>
+            <div style="font-size:11px;color:var(--muted-hi);margin-top:2px">${lbl.badge}</div>
           </div>
-          <div style="font-family:'Orbitron',monospace;font-size:15px;font-weight:900;color:${evTotal > 0 ? 'var(--green)' : evTotal < 0 ? 'var(--red)' : 'var(--muted)'};min-width:36px;text-align:right;margin-left:8px;flex-shrink:0">${evTotal >= 0 ? '+' : ''}${evTotal}</div>
         </div>
-        <div style="margin-top:8px">
-          <button onclick="showEventClassement(${r},'${evType}')" style="font-size:8px;color:var(--cyan);background:rgba(0,212,255,.05);border:1px solid rgba(0,212,255,.2);border-radius:4px;padding:3px 10px;cursor:pointer;font-family:'Orbitron',monospace;font-weight:700;letter-spacing:1px;white-space:nowrap">CLASSEMENT PILOTES</button>
-        </div>
+        <button onclick="showEventClassement(${r},'${evType}')" style="font-size:8px;color:var(--cyan);background:rgba(0,212,255,.05);border:1px solid rgba(0,212,255,.2);border-radius:4px;padding:3px 7px;cursor:pointer;font-family:'Orbitron',monospace;font-weight:700;letter-spacing:1px;flex-shrink:0;white-space:nowrap">CLASSEMENT PILOTES</button>
+        <div style="font-family:'Orbitron',monospace;font-size:15px;font-weight:900;color:${evTotal > 0 ? 'var(--green)' : evTotal < 0 ? 'var(--red)' : 'var(--muted)'};min-width:36px;text-align:right;margin-left:8px">${evTotal >= 0 ? '+' : ''}${evTotal}</div>
       </div>
       <div class="res-rows">${rr_rows(evData.rows || [])}</div>
     </div>`;
