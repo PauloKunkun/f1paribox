@@ -3203,12 +3203,14 @@ function renderGP25List() {
   const box = gEl('gp25List');
   if (!box) return;
   const now = new Date();
-  const nextCal = CALENDAR.find(r => r.raceDate > now) || CALENDAR[CALENDAR.length-1];
-  box.innerHTML = GP_2026_LIST.map(gp => {
+  const nextCal = getNextRace() || CALENDAR.filter(c => !c.cancelled).slice(-1)[0];
+  box.innerHTML = GP_2026_LIST.filter(gp => {
+    const cal = CALENDAR.find(c => c.round === gp.r);
+    return cal && !cal.cancelled;
+  }).map(gp => {
     const cir = CIRCUITS.find(c => c.round === gp.r);
     const circuitName = cir ? cir.name : '—';
-    const isNext = gp.r === nextCal.round;
-    // Afficher le vainqueur depuis le cache si dispo
+    const isNext = nextCal && gp.r === nextCal.round;
     const cachedWinner = _winnerCache[gp.r] ? _winnerCache[gp.r] + ' 🏆' : '—';
     return `<div class="gp25-round${isNext ? ' next' : ''}" id="gp25-${gp.r}">
       <div class="gp25-hdr" onclick="toggleGP25(${gp.r})">
@@ -3232,10 +3234,9 @@ function renderGP25List() {
     </div>`;
   }).join('');
 
-  // Précharger les vainqueurs des GP passés
   const pastRounds = GP_2026_LIST.filter(gp => {
     const cal = CALENDAR.find(c => c.round === gp.r);
-    return cal && cal.raceDate <= now;
+    return cal && !cal.cancelled && cal.raceDate <= now;
   }).map(gp => gp.r);
   if (pastRounds.length) setTimeout(() => _prefetchWinners(pastRounds), 200);
 }
@@ -3261,7 +3262,15 @@ const CIR_JOLPICA = {
   17:'baku',       18:'marina_bay',  19:'americas',      20:'rodriguez',
   21:'interlagos', 22:'las_vegas',   23:'losail',        24:'yas_marina',
 };
-// Mapping round 2026 → round Jolpica saison 2025 sur le même circuit
+// Mapping round CALENDAR 2026 → round Jolpica 2026
+// Bahreïn (4) et Arabie Saoudite (5) annulés → Jolpica renumérote à partir de Miami
+const CIR_2026_JOL_ROUND = {
+  1:1, 2:2, 3:3,
+  // 4 et 5 annulés
+  6:4, 7:5, 8:6, 9:7, 10:8, 11:9, 12:10,
+  13:11, 14:12, 15:13, 16:14, 17:15, 18:16,
+  19:17, 20:18, 21:19, 22:20, 23:21, 24:22,
+};
 // (les calendriers 2025 et 2026 ont les mêmes circuits sauf Madrid=nouveau)
 // Canada=R7 en 2026 mais R10 en 2025 ; Imola supprimé, Madrid ajouté en R16
 const CIR_2025_ROUND = {
@@ -3440,15 +3449,17 @@ async function loadGP25(r) {
       let race = null;
 
       // Essai 1 : résultats 2026 si la course est passée
-      // Retry x3 car Jolpica peut mettre ~24h à indexer les résultats
       if (alreadyRun2026 && cId) {
-        for (let attempt = 0; attempt < 3 && !race; attempt++) {
-          try {
-            if (attempt > 0) await sleep(1500);
-            const d = await jolFetch(`${JOL}/2026/${r}/results/`);
-            const rows = d?.MRData?.RaceTable?.Races || [];
-            if (rows[0]?.Results?.length) race = rows[0];
-          } catch(_) {}
+        const jolRound2026 = CIR_2026_JOL_ROUND[r];
+        if (jolRound2026) {
+          for (let attempt = 0; attempt < 3 && !race; attempt++) {
+            try {
+              if (attempt > 0) await sleep(1500);
+              const d = await jolFetch(`${JOL}/2026/${jolRound2026}/results/`);
+              const rows = d?.MRData?.RaceTable?.Races || [];
+              if (rows[0]?.Results?.length) race = rows[0];
+            } catch(_) {}
+          }
         }
       }
 
@@ -3625,8 +3636,9 @@ async function loadGP25(r) {
       ['race','quali','pole','pit','stops'].forEach(k => setV(k,'—','erreur API','var(--muted)'));
     }
 
-    // ── Secteurs S1/S2/S3 via OpenF1 (seule source disponible) ──
+    // ── Secteurs S1/S2/S3 via OpenF1, fallback données statiques ──
     if (!meta) return;
+    let sectorsSet = false;
     try {
       const country2 = encodeURIComponent(meta.c);
       for (const yr of ['2025','2024','2023']) {
@@ -3657,9 +3669,27 @@ async function loadGP25(r) {
         if (sEl) sEl.innerHTML = '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px">'
           + secs.map((s,i)=>`<div style="display:flex;flex-direction:column;align-items:center;padding:8px 4px;background:rgba(255,255,255,.04);border-radius:4px;border-top:2px solid ${cols[i]};gap:3px"><span style="font-family:Orbitron,monospace;font-size:9px;font-weight:700;color:${cols[i]}">${labels[i]}</span><span style="font-size:14px;font-weight:700;color:#fff;letter-spacing:.5px">${s.t.toFixed(3)}s</span><span style="font-size:9px;color:var(--muted);white-space:nowrap">${dm[s.d]||('#'+s.d)} · ${yr}</span></div>`).join('')
           + '</div>';
-        break; // trouvé, on s'arrête
+        sectorsSet = true;
+        break;
       }
     } catch(e) { dbg('OpenF1 secteurs err: '+e.message,'wrn'); }
+
+    // Fallback : données statiques si OpenF1 n'a rien renvoyé
+    if (!sectorsSet) {
+      const sEl = document.getElementById(uid+'-sectors');
+      if (sEl && cir?.sectors?.length === 3) {
+        const cols=['#00D4FF','#00FF87','#FF8C00'], labels=['S1','S2','S3'];
+        sEl.innerHTML = '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px">'
+          + cir.sectors.map((s,i) => `<div style="display:flex;flex-direction:column;align-items:center;padding:8px 4px;background:rgba(255,255,255,.04);border-radius:4px;border-top:2px solid ${cols[i]};gap:3px">
+            <span style="font-family:Orbitron,monospace;font-size:9px;font-weight:700;color:${cols[i]}">${labels[i]}</span>
+            <span style="font-size:14px;font-weight:700;color:#fff;letter-spacing:.5px">${s.t !== '—' ? s.t+'s' : '—'}</span>
+            <span style="font-size:9px;color:var(--muted);white-space:nowrap">${s.t !== '—' ? (s.d+' · '+s.y) : 'N/A'}</span>
+          </div>`).join('')
+          + '</div>';
+      } else if (sEl) {
+        sEl.innerHTML = '<div style="color:var(--muted);font-size:11px;padding:10px;text-align:center">Données secteurs indisponibles</div>';
+      }
+    }
   })();
 }
 
