@@ -1881,11 +1881,17 @@ window.adminSyncCalendar = async function() {
 
     let updated = 0;
     const batch = [];
+    // Nettoyer les anciens overrides avant d'écrire les nouveaux
+    const existingSnap = await db.collection('calendarOverrides').get();
+    for (const doc of existingSnap.docs) {
+      await doc.ref.delete();
+    }
+    dbg('Anciens overrides calendrier supprimés', 'ok');
 
     for (const race of races) {
-      const round = parseInt(race.round);
-      const cal   = CALENDAR.find(c => c.round === round);
-      if (!cal) continue;
+      const circuitId = race.Circuit?.circuitId || '';
+      const cal = CALENDAR.find(c => c.f1Slug === circuitId);
+      if (!cal) { dbg(`Sync: circuitId "${circuitId}" non trouvé dans CALENDAR`, 'err'); continue; }
 
       const raceDate  = race.date;
       const raceTime  = race.time || '12:00:00Z';
@@ -1921,7 +1927,7 @@ window.adminSyncCalendar = async function() {
       if (override.sprint) cal.sprint= override.sprint;
       if (override.spQ)    cal.spQ   = override.spQ;
 
-      batch.push({ round, override });
+      batch.push({ round: cal.round, override });
       updated++;
     }
 
