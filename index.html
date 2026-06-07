@@ -3636,13 +3636,15 @@ async function loadGP25(r) {
       ['race','quali','pole','pit','stops'].forEach(k => setV(k,'—','erreur API','var(--muted)'));
     }
 
-    // ── Secteurs S1/S2/S3 via OpenF1, fallback données statiques ──
+    // ── Secteurs S1/S2/S3 via OpenF1 ──
+    // Après le GP 2026 → secteurs 2026 (puis fallback 2025)
+    // Avant le GP      → secteurs 2025 uniquement
     if (!meta) return;
     let sectorsSet = false;
+    const yearsToTry = alreadyRun2026 ? ['2026','2025'] : ['2025'];
     try {
       const country2 = encodeURIComponent(meta.c);
-      for (const yr of ['2025','2024','2023']) {
-        await sleep(200);
+      for (const yr of yearsToTry) {
         let ses = await openF1Fetch(
           `https://api.openf1.org/v1/sessions?country_name=${country2}&session_name=Qualifying&year=${yr}`
         ).catch(()=>[]);
@@ -3667,14 +3669,18 @@ async function loadGP25(r) {
         const cols=['#00D4FF','#00FF87','#FF8C00'], labels=['S1','S2','S3'];
         const secs=[bs.s1,bs.s2,bs.s3];
         if (sEl) sEl.innerHTML = '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px">'
-          + secs.map((s,i)=>`<div style="display:flex;flex-direction:column;align-items:center;padding:8px 4px;background:rgba(255,255,255,.04);border-radius:4px;border-top:2px solid ${cols[i]};gap:3px"><span style="font-family:Orbitron,monospace;font-size:9px;font-weight:700;color:${cols[i]}">${labels[i]}</span><span style="font-size:14px;font-weight:700;color:#fff;letter-spacing:.5px">${s.t.toFixed(3)}s</span><span style="font-size:9px;color:var(--muted);white-space:nowrap">${dm[s.d]||('#'+s.d)} · ${yr}</span></div>`).join('')
-          + '</div>';
+          + secs.map((s,i)=>`<div style="display:flex;flex-direction:column;align-items:center;padding:8px 4px;background:rgba(255,255,255,.04);border-radius:4px;border-top:2px solid ${cols[i]};gap:3px">
+            <span style="font-family:Orbitron,monospace;font-size:9px;font-weight:700;color:${cols[i]}">${labels[i]}</span>
+            <span style="font-size:14px;font-weight:700;color:#fff;letter-spacing:.5px">${s.t.toFixed(3)}s</span>
+            <span style="font-size:9px;color:var(--muted);white-space:nowrap">${dm[s.d]||('#'+s.d)} · ${yr}</span>
+          </div>`).join('')
+          + `</div><div style="font-size:9px;color:var(--muted);text-align:center;margin-top:5px;opacity:.6">⚡ Meilleurs secteurs individuels · Qualifications ${yr}</div>`;
         sectorsSet = true;
         break;
       }
     } catch(e) { dbg('OpenF1 secteurs err: '+e.message,'wrn'); }
 
-    // Fallback : données statiques si OpenF1 n'a rien renvoyé
+    // Fallback : données statiques
     if (!sectorsSet) {
       const sEl = document.getElementById(uid+'-sectors');
       if (sEl && cir?.sectors?.length === 3) {
